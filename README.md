@@ -22,9 +22,11 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     WLUnitField *uniField = [[WLUnitField alloc] initWithInputUnitCount:4];
-    uniField.frame = <#frame#>;
+    uniField.frame = CGRectMake(40, 40, 240, 1);
+    uniField.delegate = self;
     uniField.unitSpace = 12;
     uniField.borderRadius = 4;
+    [uniField sizeToFit];
     [uniField addTarget:self action:@selector(unitFieldEditingChanged:) forControlEvents:UIControlEventEditingChanged];
     
     [self.view addSubview:uniField];
