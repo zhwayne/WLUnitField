@@ -79,8 +79,8 @@
     _textColor = [UIColor blackColor];
     _backgroundColor = _backgroundColor ?: [UIColor whiteColor];
     _string = [NSMutableArray array];
-    _keyboardType = UIKeyboardTypeNumberPad;
-    _returnKeyType = UIReturnKeyDone;
+    _defaultKeyboardType = WLKeyboardTypeNumberPad;
+    _defaultReturnKeyType = UIReturnKeyDone;
     _enablesReturnKeyAutomatically = YES;
     _autoResignFirstResponderWhenInputFinished = NO;
     
@@ -474,6 +474,10 @@
         return;
     }
     
+    if ([text isEqualToString:@" "]) {
+        return;
+    }
+    
     if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
         if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_string.count - 1, 1) replacementString:text] == NO) {
             return;
@@ -518,6 +522,18 @@
     
     [self setNeedsDisplay];
     [self _showOrHideCursorIfNeeded];
+}
+
+- (UIKeyboardType)keyboardType {
+    if (_defaultKeyboardType == WLKeyboardTypeASCIICapable) {
+        return UIKeyboardTypeASCIICapable;
+    }
+    
+    return UIKeyboardTypeNumberPad;
+}
+
+- (UIReturnKeyType)returnKeyType {
+    return _defaultReturnKeyType;
 }
 
 @end

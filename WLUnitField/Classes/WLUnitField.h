@@ -19,6 +19,18 @@ NS_ASSUME_NONNULL_BEGIN
     UIKIT_EXTERN NSString *const WLUnitFieldDidResignFirstResponderNotification;
 #endif
 
+
+/**
+ 键盘样式
+
+ - WLKeyboardTypeNumberPad: 纯数字键盘
+ - WLKeyboardTypeASCIICapable: ASCII 字符键盘
+ */
+typedef NS_ENUM(NSUInteger, WLKeyboardType) {
+    WLKeyboardTypeNumberPad,
+    WLKeyboardTypeASCIICapable
+};
+
 @protocol WLUnitFieldDelegate;
 
 IB_DESIGNABLE
@@ -55,11 +67,11 @@ IB_DESIGNABLE
 #endif
 
 #if TARGET_INTERFACE_BUILDER
-@property (nonatomic, assign) IBInspectable NSInteger keyboardType;
-@property (nonatomic, assign) IBInspectable NSInteger returnKeyType;
+@property (nonatomic, assign) IBInspectable NSInteger defaultKeyboardType;
+@property (nonatomic, assign) IBInspectable NSInteger defaultReturnKeyType;
 #else
-@property (nonatomic, assign) UIKeyboardType keyboardType;  // 默认为 UIKeyboardTypeNumberPad。
-@property (nonatomic, assign) UIReturnKeyType returnKeyType;    // 默认为 UIReturnKeyDone。
+@property (nonatomic, assign) WLKeyboardType defaultKeyboardType;       // 默认为 WLKeyboardTypeNumberPad。
+@property (nonatomic, assign) UIReturnKeyType defaultReturnKeyType;     // 默认为 UIReturnKeyDone。
 #endif
 
 
