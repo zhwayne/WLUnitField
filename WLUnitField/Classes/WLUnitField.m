@@ -44,6 +44,7 @@
         NSCAssert(count > 0, @"WLUnitField must have one or more input units.");
         NSCAssert(count <= 8, @"WLUnitField can not have more than 8 input units.");
         
+        _inputUnitCount = count;
         [self initialize];
     }
     
@@ -70,20 +71,25 @@
 
 - (void)initialize {
     [super setBackgroundColor:[UIColor clearColor]];
+    _string = [NSMutableArray array];
     _contentSize = DEFAULT_CONTENT_SIZE;
     _secureTextEntry = NO;
-    _unitSpace = 0;
+    _unitSpace = 12;
     _borderRadius = 0;
     _borderWidth = 1;
     _textFont = [UIFont systemFontOfSize:22];
-    _textColor = [UIColor blackColor];
-    _backgroundColor = _backgroundColor ?: [UIColor whiteColor];
-    _string = [NSMutableArray array];
     _defaultKeyboardType = WLKeyboardTypeNumberPad;
     _defaultReturnKeyType = UIReturnKeyDone;
     _enablesReturnKeyAutomatically = YES;
     _autoResignFirstResponderWhenInputFinished = NO;
+    _textColor = [UIColor darkGrayColor];
+    _tintColor = [UIColor lightGrayColor];
+    _trackTintColor = [UIColor orangeColor];
+    _cursorColor = [UIColor orangeColor];
+    _backgroundColor = _backgroundColor ?: [UIColor clearColor];
+    self.cursorLayer.backgroundColor = _cursorColor.CGColor;
     
+
     [self.layer addSublayer:self.cursorLayer];
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         [self setNeedsDisplay];
@@ -244,6 +250,10 @@
     size.height = unitWidth;
     
     return size;
+}
+
+- (CGSize)sizeThatFits:(CGSize)size {
+    return [self intrinsicContentSize];
 }
 
 - (BOOL)canBecomeFirstResponder {
