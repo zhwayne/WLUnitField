@@ -1,6 +1,6 @@
 # WLUnitField
 
-`WLUnitField`是一个密码/验证码输入框，它提供了一个优雅简洁的输入环境🙂，你可以像使用`UITextField`一样去使用`WLUnitField`。
+`WLUnitField`是一个密码/验证码输入框，它提供了一个优雅简洁的输入框🙂，你可以像使用`UITextField`一样去使用`WLUnitField`。
 
 ![](./demo.gif)
 
