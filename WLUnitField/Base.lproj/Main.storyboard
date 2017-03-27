@@ -22,7 +22,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tY0-za-3UT" customClass="WLUnitField">
-                                <rect key="frame" x="147.5" y="30" width="80" height="80"/>
+                                <rect key="frame" x="99.5" y="30" width="176" height="35"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" red="1" green="0.69290176408318427" blue="0.22086018228626203" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
@@ -35,9 +35,6 @@
                                     </userDefinedRuntimeAttribute>
                                     <userDefinedRuntimeAttribute type="number" keyPath="borderRadius">
                                         <real key="value" value="4"/>
-                                    </userDefinedRuntimeAttribute>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="inputUnitCount">
-                                        <integer key="value" value="1"/>
                                     </userDefinedRuntimeAttribute>
                                     <userDefinedRuntimeAttribute type="color" keyPath="trackTintColor">
                                         <color key="value" red="1" green="0.69290176410000004" blue="0.22086018230000001" alpha="1" colorSpace="calibratedRGB"/>
@@ -61,7 +58,7 @@
                                 </connections>
                             </view>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalCentering" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="gCw-MK-hhC">
-                                <rect key="frame" x="16" y="130" width="343" height="372.5"/>
+                                <rect key="frame" x="16" y="85" width="343" height="372.5"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="GzS-Lt-G6t">
                                         <rect key="frame" x="0.0" y="0.0" width="343" height="32.5"/>
