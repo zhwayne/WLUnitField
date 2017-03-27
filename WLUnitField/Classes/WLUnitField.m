@@ -8,7 +8,7 @@
 
 #import "WLUnitField.h"
 
-#define DEFAULT_CONTENT_SIZE CGSizeMake(176, 44)
+#define DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(c) CGSizeMake(44 * c, 44)
 
 #ifdef NSFoundationVersionNumber_iOS_9_x_Max
     NSNotificationName const WLUnitFieldDidBecomeFirstResponderNotification = @"WLUnitFieldDidBecomeFirstResponderNotification";
@@ -27,7 +27,6 @@
 
 @implementation WLUnitField
 {
-    CGSize _contentSize;
     UIColor *_backgroundColor;
     CGContextRef _ctx;
 }
@@ -72,7 +71,6 @@
 - (void)initialize {
     [super setBackgroundColor:[UIColor clearColor]];
     _string = [NSMutableArray array];
-    _contentSize = DEFAULT_CONTENT_SIZE;
     _secureTextEntry = NO;
     _unitSpace = 12;
     _borderRadius = 0;
@@ -239,11 +237,10 @@
 
 - (CGSize)intrinsicContentSize {
     [self layoutIfNeeded];
-    
     CGSize size = self.bounds.size;
     
-    if (size.width < DEFAULT_CONTENT_SIZE.width) {
-        size.width = DEFAULT_CONTENT_SIZE.width;
+    if (size.width < DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(_inputUnitCount).width) {
+        size.width = DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(_inputUnitCount).width;
     }
     
     CGFloat unitWidth = (size.width + _unitSpace) / _inputUnitCount - _unitSpace;
@@ -300,10 +297,10 @@
 
     [self _fillRect:rect clip:YES];
     [self _drawBorder:rect unitSize:unitSize];
-    [self _drawText:rect unitSize:unitSize];
-    [self _drawTrackBorder:rect unitSize:unitSize];
+//    [self _drawText:rect unitSize:unitSize];
+//    [self _drawTrackBorder:rect unitSize:unitSize];
     
-    [self _resize:rect];
+    [self _resize];
 }
 
 #pragma mark- Private
@@ -312,11 +309,8 @@
  在 AutoLayout 环境下重新指定控件本身的固有尺寸
  
  `-drawRect:`方法会计算控件完成自身的绘制所需的合适尺寸，完成一次绘制后会通知 AutoLayout 系统更新尺寸。
-
- @param rect 返回一个合适的尺寸。
  */
-- (void)_resize:(CGRect)rect {
-    _contentSize = rect.size;
+- (void)_resize {
     [self invalidateIntrinsicContentSize];
 }
 
