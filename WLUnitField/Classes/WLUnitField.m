@@ -297,8 +297,8 @@
 
     [self _fillRect:rect clip:YES];
     [self _drawBorder:rect unitSize:unitSize];
-//    [self _drawText:rect unitSize:unitSize];
-//    [self _drawTrackBorder:rect unitSize:unitSize];
+    [self _drawText:rect unitSize:unitSize];
+    [self _drawTrackBorder:rect unitSize:unitSize];
     
     [self _resize];
 }
