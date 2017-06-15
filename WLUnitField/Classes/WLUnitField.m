@@ -103,7 +103,7 @@
 }
 
 - (void)setText:(NSString *)text {
-    if (text.length == 0) return;
+    
     [_characterArray removeAllObjects];
     [text enumerateSubstringsInRange:NSMakeRange(0, text.length) options:NSStringEnumerationByComposedCharacterSequences usingBlock:^(NSString * _Nullable substring, NSRange substringRange, NSRange enclosingRange, BOOL * _Nonnull stop) {
         if (self.characterArray.count < self.inputUnitCount)
