@@ -20,7 +20,7 @@
 
 @interface WLUnitField () <UIKeyInput>
 
-@property (nonatomic, strong) NSMutableArray *string;
+@property (nonatomic, strong) NSMutableArray *characterArray;
 @property (nonatomic, strong) CALayer *cursorLayer;
 
 @end
@@ -31,6 +31,7 @@
     CGContextRef _ctx;
 }
 
+@dynamic text;
 @synthesize secureTextEntry = _secureTextEntry;
 @synthesize enablesReturnKeyAutomatically = _enablesReturnKeyAutomatically;
 @synthesize keyboardType = _keyboardType;
@@ -70,14 +71,14 @@
 
 - (void)initialize {
     [super setBackgroundColor:[UIColor clearColor]];
-    _string = [NSMutableArray array];
+    _characterArray = [NSMutableArray array];
     _secureTextEntry = NO;
     _unitSpace = 12;
     _borderRadius = 0;
     _borderWidth = 1;
     _textFont = [UIFont systemFontOfSize:22];
-    _defaultKeyboardType = WLKeyboardTypeNumberPad;
-    _defaultReturnKeyType = UIReturnKeyDone;
+    _keyboardType = UIKeyboardTypeNumberPad;
+    _returnKeyType = UIReturnKeyDone;
     _enablesReturnKeyAutomatically = YES;
     _autoResignFirstResponderWhenInputFinished = NO;
     _textColor = [UIColor darkGrayColor];
@@ -97,8 +98,21 @@
 #pragma mark - Property
 
 - (NSString *)text {
-    if (_string.count == 0) return nil;
-    return [_string componentsJoinedByString:@""];
+    if (_characterArray.count == 0) return nil;
+    return [_characterArray componentsJoinedByString:@""];
+}
+
+- (void)setText:(NSString *)text {
+    if (text.length == 0) return;
+    [_characterArray removeAllObjects];
+    [text enumerateSubstringsInRange:NSMakeRange(0, text.length) options:NSStringEnumerationByComposedCharacterSequences usingBlock:^(NSString * _Nullable substring, NSRange substringRange, NSRange enclosingRange, BOOL * _Nonnull stop) {
+        if (self.characterArray.count < self.inputUnitCount)
+            [self.characterArray addObject:substring];
+        else
+            *stop = YES;
+    }];
+    
+    [self setNeedsDisplay];
 }
 
 - (CALayer *)cursorLayer {
@@ -132,7 +146,7 @@
 - (void)setSecureTextEntry:(BOOL)secureTextEntry {
     _secureTextEntry = secureTextEntry;
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 #if TARGET_INTERFACE_BUILDER
@@ -151,7 +165,7 @@
     
     _unitSpace = unitSpace;
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)setTextFont:(UIFont *)textFont {
@@ -162,7 +176,7 @@
     }
     
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)setTextColor:(UIColor *)textColor {
@@ -173,7 +187,7 @@
     }
     
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)setBorderRadius:(CGFloat)borderRadius {
@@ -181,7 +195,7 @@
     
     _borderRadius = borderRadius;
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)setBorderWidth:(CGFloat)borderWidth {
@@ -189,7 +203,7 @@
     
     _borderWidth = borderWidth;
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
@@ -200,7 +214,7 @@
     }
     
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)setTintColor:(UIColor *)tintColor {
@@ -211,19 +225,19 @@
     }
     
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)setTrackTintColor:(UIColor *)trackTintColor {
     _trackTintColor = trackTintColor;
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)setCursorColor:(UIColor *)cursorColor {
     _cursorColor = cursorColor;
     _cursorLayer.backgroundColor = _cursorColor.CGColor;
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 #pragma mark- Event
@@ -259,7 +273,7 @@
 
 - (BOOL)becomeFirstResponder {
     BOOL result = [super becomeFirstResponder];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
     
     if (result ==  YES) {
         [self sendActionsForControlEvents:UIControlEventEditingDidBegin];
@@ -275,7 +289,7 @@
 
 - (BOOL)resignFirstResponder {
     BOOL result = [super resignFirstResponder];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
     
     if (result) {
         [self sendActionsForControlEvents:UIControlEventEditingDidEnd];
@@ -287,7 +301,6 @@
 
 
 - (void)drawRect:(CGRect)rect {
-    [super drawRect:rect];
     /*
      *  绘制的线条具有宽度，因此在绘制时需要考虑该因素对绘制效果的影响。
      */
@@ -361,7 +374,7 @@
         }
         
     } else {
-        for (int i = (int)_string.count; i < _inputUnitCount; i++) {
+        for (int i = (int)_characterArray.count; i < _inputUnitCount; i++) {
             CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
                                          0,
                                          unitSize.width,
@@ -389,7 +402,7 @@
     NSDictionary *attr = @{NSForegroundColorAttributeName: _textColor,
                            NSFontAttributeName: _textFont};
     
-    for (int i = 0; i < _string.count; i++) {
+    for (int i = 0; i < _characterArray.count; i++) {
         
         CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
                                      0,
@@ -398,7 +411,7 @@
         
         
         if (_secureTextEntry == NO) {
-            NSString *subString = [_string objectAtIndex:i];
+            NSString *subString = [_characterArray objectAtIndex:i];
             
             CGSize oneTextSize = [subString sizeWithAttributes:attr];
             CGRect drawRect = CGRectInset(unitRect,
@@ -433,7 +446,7 @@
     CGContextSetLineWidth(_ctx, _borderWidth);
     CGContextSetLineCap(_ctx, kCGLineCapRound);
     
-    for (int i = 0; i < _string.count; i++) {
+    for (int i = 0; i < _characterArray.count; i++) {
         CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
                                      0,
                                      unitSize.width,
@@ -442,34 +455,41 @@
         UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
         CGContextAddPath(_ctx, bezierPath.CGPath);
     }
+        
     CGContextDrawPath(_ctx, kCGPathStroke);
 }
 
-- (void)_showOrHideCursorIfNeeded {
-    _cursorLayer.hidden = !self.isFirstResponder || _cursorColor == nil || _inputUnitCount == _string.count;
+- (void)_resetCursorStateIfNeeded {
+    _cursorLayer.hidden = !self.isFirstResponder || _cursorColor == nil || _inputUnitCount == _characterArray.count;
     
     if (_cursorLayer.hidden) return;
     
     CGSize unitSize = CGSizeMake((self.bounds.size.width + _unitSpace) / _inputUnitCount - _unitSpace, self.bounds.size.height);
     
-    CGRect unitRect = CGRectMake(_string.count * (unitSize.width + _unitSpace),
+    CGRect unitRect = CGRectMake(_characterArray.count * (unitSize.width + _unitSpace),
                                  0,
                                  unitSize.width,
                                  unitSize.height);
     unitRect = CGRectInset(unitRect,
                            unitRect.size.width / 2 - 1,
                            (unitRect.size.height - _textFont.pointSize) / 2);
+    
+    [CATransaction begin];
+    [CATransaction setDisableActions:NO];
+    [CATransaction setAnimationDuration:0];
+    [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
     _cursorLayer.frame = unitRect;
+    [CATransaction commit];
 }
 
 #pragma mark - UIKeyInput
 
 - (BOOL)hasText {
-    return _string != nil && _string.count > 0;
+    return _characterArray != nil && _characterArray.count > 0;
 }
 
 - (void)insertText:(NSString *)text {
-    if (_string.count >= _inputUnitCount) {
+    if (_characterArray.count >= _inputUnitCount) {
         if (_autoResignFirstResponderWhenInputFinished == YES) {
             [[NSOperationQueue mainQueue] addOperationWithBlock:^{
                 [self resignFirstResponder];
@@ -483,7 +503,7 @@
     }
     
     if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
-        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_string.count - 1, 1) replacementString:text] == NO) {
+        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_characterArray.count - 1, 1) replacementString:text] == NO) {
             return;
         }
     }
@@ -491,11 +511,11 @@
     NSRange range;
     for (int i = 0; i < text.length; i += range.length) {
         range = [text rangeOfComposedCharacterSequenceAtIndex:i];
-        [_string addObject:[text substringWithRange:range]];
+        [_characterArray addObject:[text substringWithRange:range]];
     }
     
-    if (_string.count >= _inputUnitCount) {
-        [_string removeObjectsInRange:NSMakeRange(_inputUnitCount, _string.count - _inputUnitCount)];
+    if (_characterArray.count >= _inputUnitCount) {
+        [_characterArray removeObjectsInRange:NSMakeRange(_inputUnitCount, _characterArray.count - _inputUnitCount)];
         [self sendActionsForControlEvents:UIControlEventEditingChanged];
         
         if (_autoResignFirstResponderWhenInputFinished == YES) {
@@ -508,7 +528,7 @@
     }
     
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
 - (void)deleteBackward {
@@ -516,28 +536,29 @@
         return;
     
     if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
-        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_string.count - 1, 0) replacementString:@""] == NO) {
+        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_characterArray.count - 1, 0) replacementString:@""] == NO) {
             return;
         }
     }
     
-    [_string removeLastObject];
+    [_characterArray removeLastObject];
     [self sendActionsForControlEvents:UIControlEventEditingChanged];
     
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 
-- (UIKeyboardType)keyboardType {
-    if (_defaultKeyboardType == WLKeyboardTypeASCIICapable) {
-        return UIKeyboardTypeASCIICapable;
-    }
-    
-    return UIKeyboardTypeNumberPad;
-}
-
-- (UIReturnKeyType)returnKeyType {
-    return _defaultReturnKeyType;
-}
+//- (UIKeyboardType)keyboardType {
+//    return _defaultKeyboardType;
+//    if (_defaultKeyboardType == WLKeyboardTypeASCIICapable) {
+//        return UIKeyboardTypeASCIICapable;
+//    }
+//
+//    return UIKeyboardTypeNumberPad;
+//}
+//
+//- (UIReturnKeyType)returnKeyType {
+//    return _defaultReturnKeyType;
+//}
 
 @end
