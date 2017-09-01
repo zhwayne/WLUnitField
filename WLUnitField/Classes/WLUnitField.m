@@ -51,6 +51,7 @@
     return self;
 }
 
+
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
         _inputUnitCount = 4;
@@ -59,6 +60,7 @@
     
     return self;
 }
+
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     if (self = [super initWithCoder:aDecoder]) {
@@ -69,8 +71,11 @@
     return self;
 }
 
+
+
 - (void)initialize {
-    [super setBackgroundColor:[UIColor clearColor]];
+    [self setBackgroundColor:[UIColor clearColor]];
+    self.opaque = NO;
     _characterArray = [NSMutableArray array];
     _secureTextEntry = NO;
     _unitSpace = 12;
@@ -87,13 +92,11 @@
     _cursorColor = [UIColor orangeColor];
     _backgroundColor = _backgroundColor ?: [UIColor clearColor];
     self.cursorLayer.backgroundColor = _cursorColor.CGColor;
-    
 
     [self.layer addSublayer:self.cursorLayer];
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        [self setNeedsDisplay];
-    }];
+    [self setNeedsDisplay];
 }
+
 
 #pragma mark - Property
 
@@ -101,6 +104,7 @@
     if (_characterArray.count == 0) return nil;
     return [_characterArray componentsJoinedByString:@""];
 }
+
 
 - (void)setText:(NSString *)text {
     
@@ -114,6 +118,7 @@
     
     [self setNeedsDisplay];
 }
+
 
 - (CALayer *)cursorLayer {
     if (!_cursorLayer) {
@@ -143,30 +148,35 @@
     return _cursorLayer;
 }
 
+
 - (void)setSecureTextEntry:(BOOL)secureTextEntry {
     _secureTextEntry = secureTextEntry;
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
 
+
 #if TARGET_INTERFACE_BUILDER
 - (void)setInputUnitCount:(NSUInteger)inputUnitCount {
-    if (inputUnitCount < 1 || inputUnitCount > 8) return;
+    inputUnitCount = MAX(1, MIN(8, inputUnitCount));
     
     _inputUnitCount = inputUnitCount;
     [self setNeedsDisplay];
-    [self _showOrHideCursorIfNeeded];
+    [self _resetCursorStateIfNeeded];
 }
 #endif
+
 
 - (void)setUnitSpace:(CGFloat)unitSpace {
     if (unitSpace < 0) return;
     if (unitSpace < 2) unitSpace = 0;
     
     _unitSpace = unitSpace;
+    [self _resize];
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
+
 
 - (void)setTextFont:(UIFont *)textFont {
     if (textFont == nil) {
@@ -179,6 +189,7 @@
     [self _resetCursorStateIfNeeded];
 }
 
+
 - (void)setTextColor:(UIColor *)textColor {
     if (textColor == nil) {
         _textColor = [UIColor blackColor];
@@ -190,6 +201,7 @@
     [self _resetCursorStateIfNeeded];
 }
 
+
 - (void)setBorderRadius:(CGFloat)borderRadius {
     if (borderRadius < 0) return;
     
@@ -198,6 +210,7 @@
     [self _resetCursorStateIfNeeded];
 }
 
+
 - (void)setBorderWidth:(CGFloat)borderWidth {
     if (borderWidth < 0) return;
     
@@ -205,6 +218,7 @@
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
+
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (backgroundColor == nil) {
@@ -217,6 +231,7 @@
     [self _resetCursorStateIfNeeded];
 }
 
+
 - (void)setTintColor:(UIColor *)tintColor {
     if (tintColor == nil) {
         _tintColor = [[UIView appearance] tintColor];
@@ -228,17 +243,35 @@
     [self _resetCursorStateIfNeeded];
 }
 
+
+//- (void)setTintBackgroundColor:(UIColor *)tintBackgroundColor {
+//    _tintBackgroundColor = tintBackgroundColor;
+//    
+//    [self setNeedsDisplay];
+//    [self _resetCursorStateIfNeeded];
+//}
+
+
 - (void)setTrackTintColor:(UIColor *)trackTintColor {
     _trackTintColor = trackTintColor;
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
 
+
+//- (void)setTrackTintBackgroundColor:(UIColor *)trackTintBackgroundColor {
+//    _trackTintBackgroundColor = trackTintBackgroundColor;
+//    [self setNeedsDisplay];
+//    [self _resetCursorStateIfNeeded];
+//}
+
+
 - (void)setCursorColor:(UIColor *)cursorColor {
     _cursorColor = cursorColor;
     _cursorLayer.backgroundColor = _cursorColor.CGColor;
     [self _resetCursorStateIfNeeded];
 }
+
 
 #pragma mark- Event
 
@@ -247,29 +280,28 @@
     [self becomeFirstResponder];
 }
 
+
 #pragma mark - Override
 
 - (CGSize)intrinsicContentSize {
-    [self layoutIfNeeded];
     CGSize size = self.bounds.size;
-    
-    if (size.width < DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(_inputUnitCount).width) {
-        size.width = DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(_inputUnitCount).width;
-    }
-    
+    size.width = MAX(size.width, DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(_inputUnitCount).width);
     CGFloat unitWidth = (size.width + _unitSpace) / _inputUnitCount - _unitSpace;
     size.height = unitWidth;
     
     return size;
 }
 
-- (CGSize)sizeThatFits:(CGSize)size {
-    return [self intrinsicContentSize];
-}
+
+//- (CGSize)sizeThatFits:(CGSize)size {
+//    return [self intrinsicContentSize];
+//}
+
 
 - (BOOL)canBecomeFirstResponder {
     return YES;
 }
+
 
 - (BOOL)becomeFirstResponder {
     BOOL result = [super becomeFirstResponder];
@@ -283,9 +315,11 @@
     return result;
 }
 
+
 - (BOOL)canResignFirstResponder {
     return YES;
 }
+
 
 - (BOOL)resignFirstResponder {
     BOOL result = [super resignFirstResponder];
@@ -312,8 +346,6 @@
     [self _drawBorder:rect unitSize:unitSize];
     [self _drawText:rect unitSize:unitSize];
     [self _drawTrackBorder:rect unitSize:unitSize];
-    
-    [self _resize];
 }
 
 #pragma mark- Private
@@ -343,6 +375,7 @@
     CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:CGRectInset(rect, _borderWidth * 0.75, _borderWidth * 0.75) cornerRadius:_borderRadius].CGPath);
     CGContextFillPath(_ctx);
 }
+
 
 /**
  绘制边框
@@ -459,6 +492,7 @@
     CGContextDrawPath(_ctx, kCGPathStroke);
 }
 
+
 - (void)_resetCursorStateIfNeeded {
     _cursorLayer.hidden = !self.isFirstResponder || _cursorColor == nil || _inputUnitCount == _characterArray.count;
     
@@ -482,11 +516,13 @@
     [CATransaction commit];
 }
 
+
 #pragma mark - UIKeyInput
 
 - (BOOL)hasText {
     return _characterArray != nil && _characterArray.count > 0;
 }
+
 
 - (void)insertText:(NSString *)text {
     if (_characterArray.count >= _inputUnitCount) {
@@ -531,6 +567,7 @@
     [self _resetCursorStateIfNeeded];
 }
 
+
 - (void)deleteBackward {
     if ([self hasText] == NO)
         return;
@@ -548,17 +585,5 @@
     [self _resetCursorStateIfNeeded];
 }
 
-//- (UIKeyboardType)keyboardType {
-//    return _defaultKeyboardType;
-//    if (_defaultKeyboardType == WLKeyboardTypeASCIICapable) {
-//        return UIKeyboardTypeASCIICapable;
-//    }
-//
-//    return UIKeyboardTypeNumberPad;
-//}
-//
-//- (UIReturnKeyType)returnKeyType {
-//    return _defaultReturnKeyType;
-//}
 
 @end
