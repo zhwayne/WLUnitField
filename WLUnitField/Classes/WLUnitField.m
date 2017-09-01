@@ -244,11 +244,26 @@
 }
 
 
+//- (void)setTintBackgroundColor:(UIColor *)tintBackgroundColor {
+//    _tintBackgroundColor = tintBackgroundColor;
+//    
+//    [self setNeedsDisplay];
+//    [self _resetCursorStateIfNeeded];
+//}
+
+
 - (void)setTrackTintColor:(UIColor *)trackTintColor {
     _trackTintColor = trackTintColor;
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
+
+
+//- (void)setTrackTintBackgroundColor:(UIColor *)trackTintBackgroundColor {
+//    _trackTintBackgroundColor = trackTintBackgroundColor;
+//    [self setNeedsDisplay];
+//    [self _resetCursorStateIfNeeded];
+//}
 
 
 - (void)setCursorColor:(UIColor *)cursorColor {
