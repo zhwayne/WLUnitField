@@ -9,7 +9,7 @@ https://github.com/zhwayne/WLUnitField
 
 ## 使用
 
-`WLUnitField`的使用非常简单。它继承自`UIControl`，这意味着你可以给它添加各种`UIControlEvent`。然而事实上，WLUnitField 只支持 3 种 event：
+`WLUnitField`的使用非常简单。它继承自`UIControl`，这意味着你可以给它添加各种`UIControlEvent`：
 * UIControlEventEditingDidBegin
 * UIControlEventEditingChanged
 * UIControlEventEditingDidEnd
@@ -40,5 +40,5 @@ https://github.com/zhwayne/WLUnitField
 ```
 
 
-## 存在的问题
-1. 不支持系统输入法**点击选择候选词**功能，不支持系统输入法下**中文输入**。
+## 需要改进的地方
+- 不支持系统输入法下**中文输入**。
