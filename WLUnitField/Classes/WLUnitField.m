@@ -293,9 +293,9 @@
 }
 
 
-//- (CGSize)sizeThatFits:(CGSize)size {
-//    return [self intrinsicContentSize];
-//}
+- (CGSize)sizeThatFits:(CGSize)size {
+    return [self intrinsicContentSize];
+}
 
 
 - (BOOL)canBecomeFirstResponder {
