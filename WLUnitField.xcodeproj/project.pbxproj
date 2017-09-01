@@ -15,7 +15,7 @@
 		B08987361DE41A91003B3A6E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B08987341DE41A91003B3A6E /* Main.storyboard */; };
 		B08987381DE41A92003B3A6E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B08987371DE41A92003B3A6E /* Assets.xcassets */; };
 		B089873B1DE41A92003B3A6E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B08987391DE41A92003B3A6E /* LaunchScreen.storyboard */; };
-		B08987451DE41A99003B3A6E /* WLUnitField.m in Sources */ = {isa = PBXBuildFile; fileRef = B08987441DE41A99003B3A6E /* WLUnitField.m */; };
+		B0C1E17E1F591E1600E75FCC /* WLUnitField.m in Sources */ = {isa = PBXBuildFile; fileRef = B0C1E17D1F591E1600E75FCC /* WLUnitField.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,8 +33,8 @@
 		B08987371DE41A92003B3A6E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B089873A1DE41A92003B3A6E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B089873C1DE41A92003B3A6E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B08987431DE41A99003B3A6E /* WLUnitField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WLUnitField.h; sourceTree = "<group>"; };
-		B08987441DE41A99003B3A6E /* WLUnitField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WLUnitField.m; sourceTree = "<group>"; };
+		B0C1E17C1F591E1600E75FCC /* WLUnitField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WLUnitField.h; sourceTree = "<group>"; };
+		B0C1E17D1F591E1600E75FCC /* WLUnitField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WLUnitField.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,8 +86,8 @@
 		B089872A1DE41A91003B3A6E /* WLUnitField */ = {
 			isa = PBXGroup;
 			children = (
+				B0C1E17B1F591E1600E75FCC /* Classes */,
 				B0130E821DE56EE0001E6466 /* RandomColor */,
-				B08987421DE41A99003B3A6E /* Classes */,
 				B089872E1DE41A91003B3A6E /* AppDelegate.h */,
 				B089872F1DE41A91003B3A6E /* AppDelegate.m */,
 				B08987311DE41A91003B3A6E /* ViewController.h */,
@@ -109,11 +109,11 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		B08987421DE41A99003B3A6E /* Classes */ = {
+		B0C1E17B1F591E1600E75FCC /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				B08987431DE41A99003B3A6E /* WLUnitField.h */,
-				B08987441DE41A99003B3A6E /* WLUnitField.m */,
+				B0C1E17C1F591E1600E75FCC /* WLUnitField.h */,
+				B0C1E17D1F591E1600E75FCC /* WLUnitField.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -191,11 +191,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				B08987331DE41A91003B3A6E /* ViewController.m in Sources */,
+				B0C1E17E1F591E1600E75FCC /* WLUnitField.m in Sources */,
 				B08987301DE41A91003B3A6E /* AppDelegate.m in Sources */,
 				B089872D1DE41A91003B3A6E /* main.m in Sources */,
 				B0130E881DE56EE0001E6466 /* UIColor+randomColor.m in Sources */,
 				B0130E891DE56EE0001E6466 /* YGColorDefinition.m in Sources */,
-				B08987451DE41A99003B3A6E /* WLUnitField.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
