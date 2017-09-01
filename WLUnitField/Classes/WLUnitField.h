@@ -27,7 +27,7 @@ IB_DESIGNABLE
 @property (nullable, nonatomic, weak) id<WLUnitFieldDelegate> delegate;
 
 /**
- 保留的用户输入的字符串
+ 保留的用户输入的字符串，最好使用数字字符串，因为目前还不支持其他字符。
  */
 @property (nullable, nonatomic, copy) IBInspectable NSString *text;
 
