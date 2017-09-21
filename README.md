@@ -42,3 +42,11 @@ https://github.com/zhwayne/WLUnitField
 
 ## 需要改进的地方
 - 不支持系统输入法下**中文输入**。
+
+
+## 感谢🙏
+* [jixiang0903](https://github.com/jixiang0903)
+
+
+## License
+MIT License
