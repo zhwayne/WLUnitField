@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol WLUnitFieldDelegate;
 
 IB_DESIGNABLE
-@interface WLUnitField : UIControl
+@interface WLUnitField : UIControl <UIKeyInput>
 
 @property (nullable, nonatomic, weak) id<WLUnitFieldDelegate> delegate;
 
@@ -31,18 +31,6 @@ IB_DESIGNABLE
  */
 @property (nullable, nonatomic, copy) IBInspectable NSString *text;
 
-/**
- 当需要密文输入时，可以设置该值为 YES，输入文字将被圆点替代
- 如：
-    ┌┈┈┈┬┈┈┈┬┈┈┈┬┈┈┈┐
-    ┆ • ┆ • ┆ • ┆ • ┆       secureTextEntry is YES.
-    └┈┈┈┴┈┈┈┴┈┈┈┴┈┈┈┘
-    ┌┈┈┈┬┈┈┈┬┈┈┈┬┈┈┈┐
-    ┆ 1 ┆ 2 ┆ 3 ┆ 4 ┆       secureTextEntry is NO.
-    └┈┈┈┴┈┈┈┴┈┈┈┴┈┈┈┘
- 默认值为 NO.
- */
-@property (nonatomic, assign, getter=isSecureTextEntry) IBInspectable BOOL secureTextEntry;
 
 #if TARGET_INTERFACE_BUILDER
 /**

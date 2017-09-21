@@ -18,7 +18,7 @@
     NSString *const WLUnitFieldDidResignFirstResponderNotification = @"WLUnitFieldDidResignFirstResponderNotification";
 #endif
 
-@interface WLUnitField () <UIKeyInput>
+@interface WLUnitField ()
 
 @property (nonatomic, strong) NSMutableArray *characterArray;
 @property (nonatomic, strong) CALayer *cursorLayer;
@@ -36,6 +36,9 @@
 @synthesize enablesReturnKeyAutomatically = _enablesReturnKeyAutomatically;
 @synthesize keyboardType = _keyboardType;
 @synthesize returnKeyType = _returnKeyType;
+
+@synthesize autocapitalizationType = _autocapitalizationType;
+@synthesize autocorrectionType = _autocorrectionType;
 
 #pragma mark - Life
 
@@ -91,6 +94,8 @@
     _trackTintColor = [UIColor orangeColor];
     _cursorColor = [UIColor orangeColor];
     _backgroundColor = _backgroundColor ?: [UIColor clearColor];
+    _autocorrectionType = UITextAutocorrectionTypeNo;
+    _autocapitalizationType = UITextAutocapitalizationTypeNone;
     self.cursorLayer.backgroundColor = _cursorColor.CGColor;
 
     [self.layer addSublayer:self.cursorLayer];
@@ -153,6 +158,18 @@
     _secureTextEntry = secureTextEntry;
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
+}
+
+
+/// 禁用大小写。感谢 jixiang0903 [https://github.com/jixiang0903] 提供的建议
+- (void)setAutocapitalizationType:(UITextAutocapitalizationType)autocapitalizationType {
+    _autocapitalizationType = UITextAutocapitalizationTypeNone;
+}
+
+
+/// 禁用输入预测修正。感谢 jixiang0903 [https://github.com/jixiang0903] 提供的建议
+- (void)setAutocorrectionType:(UITextAutocorrectionType)autocorrectionType {
+    _autocorrectionType = UITextAutocorrectionTypeNo;
 }
 
 
@@ -525,6 +542,13 @@
 
 
 - (void)insertText:(NSString *)text {
+    if ([text isEqualToString:@"\n"]) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            [self resignFirstResponder];
+        }];
+        return;
+    }
+    
     if (_characterArray.count >= _inputUnitCount) {
         if (_autoResignFirstResponderWhenInputFinished == YES) {
             [[NSOperationQueue mainQueue] addOperationWithBlock:^{
