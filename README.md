@@ -9,7 +9,7 @@ https://github.com/zhwayne/WLUnitField
 
 ## 使用
 
-`WLUnitField`的使用非常简单。它继承自`UIControl`，这意味着你可以给它添加各种`UIControlEvent`：
+`WLUnitField`的使用非常简单。它继承自`UIControl`，你可以给它添加以下 3 种`UIControlEvent`：
 * UIControlEventEditingDidBegin
 * UIControlEventEditingChanged
 * UIControlEventEditingDidEnd
