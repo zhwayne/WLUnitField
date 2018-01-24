@@ -184,8 +184,7 @@
 #endif
 
 
-- (void)setUnitSpace:(CGFloat)unitSpace {
-    if (unitSpace < 0) return;
+- (void)setUnitSpace:(NSUInteger)unitSpace {
     if (unitSpace < 2) unitSpace = 0;
     
     _unitSpace = unitSpace;

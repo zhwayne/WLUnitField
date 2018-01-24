@@ -52,7 +52,7 @@ IB_DESIGNABLE
     ┆ 1 ┆┆ 2 ┆┆ 3 ┆┆ 4 ┆    unitSpace is 6
     └┈┈┈┘└┈┈┈┘└┈┈┈┘└┈┈┈┘
  */
-@property (nonatomic, assign) IBInspectable CGFloat unitSpace;
+@property (nonatomic, assign) IBInspectable NSUInteger unitSpace;
 
 /**
  设置边框圆角
