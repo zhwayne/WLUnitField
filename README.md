@@ -2,7 +2,7 @@
 
 https://github.com/zhwayne/WLUnitField
 
-`WLUnitField`是一个密码/验证码输入框，它提供了一个优雅简洁的输入框🙂，你可以像使用`UITextField`一样去使用`WLUnitField`。
+这是一个优雅简洁的密码/验证码输入框，你可以像使用`UITextField`一样去使用`WLUnitField`。
 
 ![](./demo.gif)
 
@@ -38,15 +38,6 @@ https://github.com/zhwayne/WLUnitField
      NSLog(@"%s, %@", __FUNCTION__, sender.text);
 }
 ```
-
-
-## 需要改进的地方
-- 不支持系统输入法下**中文输入**。
-
-
-## 感谢🙏
-* [jixiang0903](https://github.com/jixiang0903)
-
 
 ## License
 MIT License
