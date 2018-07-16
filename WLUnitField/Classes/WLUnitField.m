@@ -146,7 +146,7 @@
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
             [self layoutIfNeeded];
             
-            _cursorLayer.position = CGPointMake(CGRectGetWidth(self.bounds) / _inputUnitCount / 2, CGRectGetHeight(self.bounds) / 2);
+            self.cursorLayer.position = CGPointMake(CGRectGetWidth(self.bounds) / self.inputUnitCount / 2, CGRectGetHeight(self.bounds) / 2);
         }];
     }
     
@@ -160,13 +160,15 @@
     [self _resetCursorStateIfNeeded];
 }
 
-
+/// 在 iOS 11 及 iOS 12 beta 测试版系统中，对于实现了 UIKeyInput 协议的自定义控件，系统键盘的输入预测 pannel
+/// 极大概率会错位，键盘高度异常。猜测也许是系统 bug，如果你知道解决版办法，我很期待你的解答:)。
 /// 禁用大小写。感谢 jixiang0903 [https://github.com/jixiang0903] 提供的建议
 - (void)setAutocapitalizationType:(UITextAutocapitalizationType)autocapitalizationType {
     _autocapitalizationType = UITextAutocapitalizationTypeNone;
 }
 
-
+/// 在 iOS 11 及 iOS 12 beta 测试版系统中，对于实现了 UIKeyInput 协议的自定义控件，系统键盘的输入预测 pannel
+/// 极大概率会错位，键盘高度异常。猜测也许是系统 bug，如果你知道解决版办法，我很期待你的解答:)。
 /// 禁用输入预测修正。感谢 jixiang0903 [https://github.com/jixiang0903] 提供的建议
 - (void)setAutocorrectionType:(UITextAutocorrectionType)autocorrectionType {
     _autocorrectionType = UITextAutocorrectionTypeNo;

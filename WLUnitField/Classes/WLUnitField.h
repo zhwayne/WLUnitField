@@ -105,7 +105,7 @@ IB_DESIGNABLE
 
 
 
-@protocol WLUnitFieldDelegate <NSObject>
+@protocol WLUnitFieldDelegate <UITextFieldDelegate>
 
 @optional
 - (BOOL)unitField:(WLUnitField *)uniField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string;
