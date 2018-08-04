@@ -20,7 +20,7 @@
 
 @interface WLUnitField ()
 
-@property (nonatomic, strong) NSMutableArray *characterArray;
+@property (nonatomic, strong) NSMutableArray <NSString*>*characterArray;
 @property (nonatomic, strong) CALayer *cursorLayer;
 
 @end
@@ -564,7 +564,7 @@
     }
     
     if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
-        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_characterArray.count - 1, 1) replacementString:text] == NO) {
+        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(self.text.length, text.length) replacementString:text] == NO) {
             return;
         }
     }
@@ -598,7 +598,8 @@
         return;
     
     if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
-        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_characterArray.count - 1, 0) replacementString:@""] == NO) {
+        NSUInteger len = self.characterArray.lastObject.length ?: 0;
+        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(MAX(0, self.text.length - len), len) replacementString:@""] == NO) {
             return;
         }
     }

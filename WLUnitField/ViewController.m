@@ -27,7 +27,12 @@
 }
 
 - (BOOL)unitField:(WLUnitField *)uniField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-    NSString *text = [uniField.text stringByReplacingCharactersInRange:range withString:string];
+    NSString *text = nil;
+    if (range.location >= uniField.text.length) {
+        text = [uniField.text stringByAppendingString:string];
+    } else {
+        text = [uniField.text stringByReplacingCharactersInRange:range withString:string];
+    }
     NSLog(@"******>%@", text);
     
     return YES;
