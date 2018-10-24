@@ -8,8 +8,6 @@
 
 #import "WLUnitField.h"
 
-#define DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(c) CGSizeMake(44 * c, 44)
-
 #ifdef NSFoundationVersionNumber_iOS_9_x_Max
     NSNotificationName const WLUnitFieldDidBecomeFirstResponderNotification = @"WLUnitFieldDidBecomeFirstResponderNotification";
     NSNotificationName const WLUnitFieldDidResignFirstResponderNotification = @"WLUnitFieldDidResignFirstResponderNotification";
@@ -43,10 +41,15 @@
 #pragma mark - Life
 
 - (instancetype)initWithInputUnitCount:(NSUInteger)count {
+    return [self initWithStyle:WLUnitFieldStyleBorder inputUnitCount:count];
+}
+
+- (instancetype)initWithStyle:(WLUnitFieldStyle)style inputUnitCount:(NSUInteger)count {
     if (self = [super initWithFrame:CGRectZero]) {
         NSCAssert(count > 0, @"WLUnitField must have one or more input units.");
         NSCAssert(count <= 8, @"WLUnitField can not have more than 8 input units.");
         
+        _style = style;
         _inputUnitCount = count;
         [self initialize];
     }
@@ -82,6 +85,7 @@
     _characterArray = [NSMutableArray array];
     _secureTextEntry = NO;
     _unitSpace = 12;
+    _unitSize = CGSizeMake(44, 44);
     _borderRadius = 0;
     _borderWidth = 1;
     _textFont = [UIFont systemFontOfSize:22];
@@ -183,6 +187,13 @@
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
+
+- (void)setStyle:(NSUInteger)style {
+    _style = style;
+    [self setNeedsDisplay];
+    [self _resetCursorStateIfNeeded];
+}
+
 #endif
 
 
@@ -239,12 +250,13 @@
 
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
-    if (backgroundColor == nil) {
-        _backgroundColor = [UIColor blackColor];
-    } else {
-        _backgroundColor = backgroundColor;
-    }
-    
+//    if (backgroundColor == nil) {
+//        _backgroundColor = [UIColor blackColor];
+//    } else {
+//        _backgroundColor = backgroundColor;
+//    }
+//
+    _backgroundColor = [UIColor clearColor];
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
@@ -290,6 +302,11 @@
     [self _resetCursorStateIfNeeded];
 }
 
+- (void)setUnitSize:(CGSize)unitSize {
+    _unitSize = unitSize;
+    [self setNeedsDisplay];
+    [self _resetCursorStateIfNeeded];
+}
 
 #pragma mark- Event
 
@@ -302,12 +319,9 @@
 #pragma mark - Override
 
 - (CGSize)intrinsicContentSize {
-    CGSize size = self.bounds.size;
-    size.width = MAX(size.width, DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(_inputUnitCount).width);
-    CGFloat unitWidth = (size.width + _unitSpace) / _inputUnitCount - _unitSpace;
-    size.height = unitWidth;
     
-    return size;
+    return CGSizeMake(_inputUnitCount * (_unitSize.width + _unitSpace) - _unitSpace ,
+                      _unitSize.height);
 }
 
 
@@ -387,7 +401,8 @@
 - (void)_fillRect:(CGRect)rect clip:(BOOL)clip {
     [_backgroundColor setFill];
     if (clip) {
-        CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:_borderRadius].CGPath);
+        CGFloat radius = _style == WLUnitFieldStyleBorder ? _borderRadius : 0;
+        CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:radius].CGPath);
         CGContextClip(_ctx);
     }
     CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:CGRectInset(rect, _borderWidth * 0.75, _borderWidth * 0.75) cornerRadius:_borderRadius].CGPath);
@@ -409,33 +424,50 @@
  */
 - (void)_drawBorder:(CGRect)rect unitSize:(CGSize)unitSize {
     
-    [self.tintColor setStroke];
-    CGContextSetLineWidth(_ctx, _borderWidth);
-    CGContextSetLineCap(_ctx, kCGLineCapRound);
     CGRect bounds = CGRectInset(rect, _borderWidth * 0.5, _borderWidth * 0.5);
     
-    
-    if (_unitSpace < 2) {
-        UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:_borderRadius];
-        CGContextAddPath(_ctx, bezierPath.CGPath);
+    if (_style == WLUnitFieldStyleBorder) {
+        [self.tintColor setStroke];
+        CGContextSetLineWidth(_ctx, _borderWidth);
+        CGContextSetLineCap(_ctx, kCGLineCapRound);
         
-        for (int i = 1; i < _inputUnitCount; ++i) {
-            CGContextMoveToPoint(_ctx, (i * unitSize.width), 0);
-            CGContextAddLineToPoint(_ctx, (i * unitSize.width), (unitSize.height));
+        if (_unitSpace < 2) {
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:_borderRadius];
+            CGContextAddPath(_ctx, bezierPath.CGPath);
+            
+            for (int i = 1; i < _inputUnitCount; ++i) {
+                CGContextMoveToPoint(_ctx, (i * unitSize.width), 0);
+                CGContextAddLineToPoint(_ctx, (i * unitSize.width), (unitSize.height));
+            }
+            
+        } else {
+            for (int i = (int)_characterArray.count; i < _inputUnitCount; i++) {
+                CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                             0,
+                                             unitSize.width,
+                                             unitSize.height);
+                unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
+                UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
+                CGContextAddPath(_ctx, bezierPath.CGPath);
+            }
         }
         
-    } else {
+        CGContextDrawPath(_ctx, kCGPathStroke);
+    }
+    else {
+        
+        [self.tintColor setFill];
         for (int i = (int)_characterArray.count; i < _inputUnitCount; i++) {
-            CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
-                                         0,
+            CGRect unitLineRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                         unitSize.height - _borderWidth,
                                          unitSize.width,
-                                         unitSize.height);
-            unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
-            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
+                                         _borderWidth);
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitLineRect cornerRadius:_borderRadius];
             CGContextAddPath(_ctx, bezierPath.CGPath);
         }
+        
+        CGContextDrawPath(_ctx, kCGPathFill);
     }
-    CGContextDrawPath(_ctx, kCGPathStroke);
 }
 
 
@@ -460,6 +492,7 @@
                                      unitSize.width,
                                      unitSize.height);
         
+        CGFloat yOffset = _style == WLUnitFieldStyleBorder ? 0 : _borderWidth;
         
         if (_secureTextEntry == NO) {
             NSString *subString = [_characterArray objectAtIndex:i];
@@ -468,11 +501,13 @@
             CGRect drawRect = CGRectInset(unitRect,
                                    (unitRect.size.width - oneTextSize.width) / 2,
                                    (unitRect.size.height - oneTextSize.height) / 2);
+            drawRect.size.height -= yOffset;
             [subString drawInRect:drawRect withAttributes:attr];
         } else {
             CGRect drawRect = CGRectInset(unitRect,
                                           (unitRect.size.width - _textFont.pointSize / 2) / 2,
                                           (unitRect.size.height - _textFont.pointSize / 2) / 2);
+            drawRect.size.height -= yOffset;
             [_textColor setFill];
             CGContextAddEllipseInRect(_ctx, drawRect);
             CGContextFillPath(_ctx);
@@ -490,24 +525,41 @@
  */
 - (void)_drawTrackBorder:(CGRect)rect unitSize:(CGSize)unitSize {
     if (_trackTintColor == nil) return;
-    if (_unitSpace < 2) return;
     
-    
-    [_trackTintColor setStroke];
-    CGContextSetLineWidth(_ctx, _borderWidth);
-    CGContextSetLineCap(_ctx, kCGLineCapRound);
-    
-    for (int i = 0; i < _characterArray.count; i++) {
-        CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
-                                     0,
-                                     unitSize.width,
-                                     unitSize.height);
-        unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
-        UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
-        CGContextAddPath(_ctx, bezierPath.CGPath);
-    }
+    if (_style == WLUnitFieldStyleBorder) {
+        if (_unitSpace < 2) return;
         
-    CGContextDrawPath(_ctx, kCGPathStroke);
+        [_trackTintColor setStroke];
+        CGContextSetLineWidth(_ctx, _borderWidth);
+        CGContextSetLineCap(_ctx, kCGLineCapRound);
+        
+        for (int i = 0; i < _characterArray.count; i++) {
+            CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                         0,
+                                         unitSize.width,
+                                         unitSize.height);
+            unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
+            CGContextAddPath(_ctx, bezierPath.CGPath);
+        }
+        
+        CGContextDrawPath(_ctx, kCGPathStroke);
+    }
+    else {
+        [_trackTintColor setFill];
+        
+        for (int i = 0; i < _characterArray.count; i++) {
+            CGRect unitLineRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                             unitSize.height - _borderWidth,
+                                             unitSize.width,
+                                             _borderWidth);
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitLineRect cornerRadius:_borderRadius];
+            CGContextAddPath(_ctx, bezierPath.CGPath);
+        }
+        
+        CGContextDrawPath(_ctx, kCGPathFill);
+    }
+    
 }
 
 
@@ -525,6 +577,9 @@
     unitRect = CGRectInset(unitRect,
                            unitRect.size.width / 2 - 1,
                            (unitRect.size.height - _textFont.pointSize) / 2);
+    
+    CGFloat yOffset = _style == WLUnitFieldStyleBorder ? 0 : _borderWidth;
+    unitRect.size.height -= yOffset;
     
     [CATransaction begin];
     [CATransaction setDisableActions:NO];

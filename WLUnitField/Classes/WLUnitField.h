@@ -19,6 +19,17 @@ NS_ASSUME_NONNULL_BEGIN
     UIKIT_EXTERN NSString *const WLUnitFieldDidResignFirstResponderNotification;
 #endif
 
+/**
+ UnitField 的外观风格
+
+ - WLUnitFieldStyleBorder: 边框样式, UnitField 的默认样式
+ - WLUnitFieldStyleUnderline: 下滑线样式
+ */
+typedef NS_ENUM(NSUInteger, WLUnitFieldStyle) {
+    WLUnitFieldStyleBorder,
+    WLUnitFieldStyleUnderline
+};
+
 @protocol WLUnitFieldDelegate;
 
 IB_DESIGNABLE
@@ -38,8 +49,14 @@ IB_DESIGNABLE
  目前 WLUnitField 允许的输入单元个数区间控制在 1 ~ 8 个。任何超过该范围内的赋值行为都将被忽略。
  */
 @property (nonatomic, assign) IBInspectable NSUInteger inputUnitCount;
+
+/**
+ UnitField 的外观风格, 默认为 WLUnitFieldStyleBorder.
+ */
+@property (nonatomic, assign) IBInspectable NSUInteger style;
 #else
 @property (nonatomic, assign, readonly) NSUInteger inputUnitCount;
+@property (nonatomic, assign, readonly) WLUnitFieldStyle style;
 #endif
 
 
@@ -99,7 +116,13 @@ IB_DESIGNABLE
  */
 @property (nonatomic, assign) IBInspectable BOOL autoResignFirstResponderWhenInputFinished;
 
+/**
+ 每个 unitfield 的大小, 默认为 44x44
+ */
+@property (nonatomic, assign) IBInspectable CGSize unitSize;
+
 - (instancetype)initWithInputUnitCount:(NSUInteger)count;
+- (instancetype)initWithStyle:(WLUnitFieldStyle)style inputUnitCount:(NSUInteger)count;
 
 @end
 

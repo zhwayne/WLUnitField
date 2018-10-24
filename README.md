@@ -5,7 +5,7 @@ https://github.com/zhwayne/WLUnitField
 这是一个优雅简洁的密码/验证码输入框，你可以像使用`UITextField`一样去使用`WLUnitField`。
 
 ![](./demo.gif)
-
+![](./line.png)
 
 ## 使用
 
