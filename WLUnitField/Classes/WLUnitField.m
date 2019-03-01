@@ -30,6 +30,7 @@
 }
 
 @dynamic text;
+@synthesize textContentType = _textContentType;
 @synthesize secureTextEntry = _secureTextEntry;
 @synthesize enablesReturnKeyAutomatically = _enablesReturnKeyAutomatically;
 @synthesize keyboardType = _keyboardType;
@@ -126,6 +127,18 @@
     }];
     
     [self setNeedsDisplay];
+    
+    /**
+     Supporting iOS12 SMS verification code, setText will be called when verification code input.
+     */
+    if (_characterArray.count >= _inputUnitCount) {
+        if (_autoResignFirstResponderWhenInputFinished == YES) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                [self resignFirstResponder];
+            }];
+        }
+        return;
+    }
 }
 
 
@@ -667,4 +680,136 @@
 }
 
 
+
+#pragma mark - UITextInputTraits
+
+/**
+ Supporting iOS12 SMS verification code, keyboardType must be UIKeyboardTypeNumberPad to localizable.
+ 
+ Must set textContentType to UITextContentTypeOneTimeCode
+ */
+
+- (UITextContentType)textContentType {
+    return _textContentType;
+}
+
+- (void)setTextContentType:(UITextContentType)textContentType {
+    _textContentType = textContentType;
+}
+// UITextInput implement.
+#pragma mark - UITextInput
+- (nullable NSString *)textInRange:(UITextRange *)range {
+    return nil;
+}
+
+- (void)replaceRange:(UITextRange *)range withText:(NSString *)text {
+    return;
+}
+
+- (UITextRange *)selectedTextRange {
+    return nil;
+}
+
+- (void)setSelectedTextRange:(UITextRange *)selectedTextRange {
+    return;
+}
+
+- (UITextRange *)markedTextRange {
+    return nil;
+}
+
+- (NSDictionary<NSAttributedStringKey,id> *)markedTextStyle {
+    return nil;
+}
+
+- (void)setMarkedTextStyle:(NSDictionary<NSAttributedStringKey,id> *)markedTextStyle {
+    return;
+}
+
+- (void)setMarkedText:(nullable NSString *)markedText selectedRange:(NSRange)selectedRange {
+    return;
+}
+- (void)unmarkText {
+    return;
+}
+
+- (UITextPosition *)beginningOfDocument {
+    return nil;
+}
+
+- (UITextPosition *)endOfDocument {
+    return nil;
+}
+
+- (nullable UITextRange *)textRangeFromPosition:(UITextPosition *)fromPosition toPosition:(UITextPosition *)toPosition {
+    return nil;
+}
+
+- (nullable UITextPosition *)positionFromPosition:(UITextPosition *)position offset:(NSInteger)offset {
+    return nil;
+}
+
+- (nullable UITextPosition *)positionFromPosition:(UITextPosition *)position inDirection:(UITextLayoutDirection)direction offset:(NSInteger)offset {
+    return nil;
+}
+
+- (NSComparisonResult)comparePosition:(UITextPosition *)position toPosition:(UITextPosition *)other {
+    return NSOrderedSame;
+}
+
+- (NSInteger)offsetFromPosition:(UITextPosition *)from toPosition:(UITextPosition *)toPosition {
+    return 0;
+}
+
+- (id<UITextInputDelegate>)inputDelegate {
+    return nil;
+}
+
+- (void)setInputDelegate:(id<UITextInputDelegate>)inputDelegate {
+    return;
+}
+
+- (id<UITextInputTokenizer>)tokenizer {
+    return nil;
+}
+
+- (nullable UITextPosition *)positionWithinRange:(UITextRange *)range farthestInDirection:(UITextLayoutDirection)direction {
+    return nil;
+}
+
+- (nullable UITextRange *)characterRangeByExtendingPosition:(UITextPosition *)position inDirection:(UITextLayoutDirection)direction {
+    return nil;
+}
+
+- (UITextWritingDirection)baseWritingDirectionForPosition:(UITextPosition *)position inDirection:(UITextStorageDirection)direction {
+    return UITextWritingDirectionNatural;
+}
+
+- (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection forRange:(UITextRange *)range {
+    return;
+}
+
+- (CGRect)firstRectForRange:(UITextRange *)range {
+    return CGRectNull;
+}
+
+- (CGRect)caretRectForPosition:(UITextPosition *)position {
+    return CGRectNull;
+}
+
+- (NSArray<UITextSelectionRect *> *)selectionRectsForRange:(UITextRange *)range {
+    return nil;
+}
+
+- (nullable UITextPosition *)closestPositionToPoint:(CGPoint)point {
+    return nil;
+}
+
+- (nullable UITextPosition *)closestPositionToPoint:(CGPoint)point withinRange:(UITextRange *)range {
+    return nil;
+}
+
+- (nullable UITextRange *)characterRangeAtPoint:(CGPoint)point {
+    return nil;
+}
 @end
