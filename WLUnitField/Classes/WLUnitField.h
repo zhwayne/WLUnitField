@@ -19,10 +19,21 @@ NS_ASSUME_NONNULL_BEGIN
     UIKIT_EXTERN NSString *const WLUnitFieldDidResignFirstResponderNotification;
 #endif
 
+/**
+ UnitField 的外观风格
+
+ - WLUnitFieldStyleBorder: 边框样式, UnitField 的默认样式
+ - WLUnitFieldStyleUnderline: 下滑线样式
+ */
+typedef NS_ENUM(NSUInteger, WLUnitFieldStyle) {
+    WLUnitFieldStyleBorder,
+    WLUnitFieldStyleUnderline
+};
+
 @protocol WLUnitFieldDelegate;
 
 IB_DESIGNABLE
-@interface WLUnitField : UIControl
+@interface WLUnitField : UIControl <UITextInput>
 
 @property (nullable, nonatomic, weak) id<WLUnitFieldDelegate> delegate;
 
@@ -30,19 +41,7 @@ IB_DESIGNABLE
  保留的用户输入的字符串，最好使用数字字符串，因为目前还不支持其他字符。
  */
 @property (nullable, nonatomic, copy) IBInspectable NSString *text;
-
-/**
- 当需要密文输入时，可以设置该值为 YES，输入文字将被圆点替代
- 如：
-    ┌┈┈┈┬┈┈┈┬┈┈┈┬┈┈┈┐
-    ┆ • ┆ • ┆ • ┆ • ┆       secureTextEntry is YES.
-    └┈┈┈┴┈┈┈┴┈┈┈┴┈┈┈┘
-    ┌┈┈┈┬┈┈┈┬┈┈┈┬┈┈┈┐
-    ┆ 1 ┆ 2 ┆ 3 ┆ 4 ┆       secureTextEntry is NO.
-    └┈┈┈┴┈┈┈┴┈┈┈┴┈┈┈┘
- 默认值为 NO.
- */
-@property (nonatomic, assign, getter=isSecureTextEntry) IBInspectable BOOL secureTextEntry;
+@property(null_unspecified,nonatomic,copy) IBInspectable UITextContentType textContentType NS_AVAILABLE_IOS(10_0); // default is nil
 
 #if TARGET_INTERFACE_BUILDER
 /**
@@ -50,8 +49,14 @@ IB_DESIGNABLE
  目前 WLUnitField 允许的输入单元个数区间控制在 1 ~ 8 个。任何超过该范围内的赋值行为都将被忽略。
  */
 @property (nonatomic, assign) IBInspectable NSUInteger inputUnitCount;
+
+/**
+ UnitField 的外观风格, 默认为 WLUnitFieldStyleBorder.
+ */
+@property (nonatomic, assign) IBInspectable NSUInteger style;
 #else
 @property (nonatomic, assign, readonly) NSUInteger inputUnitCount;
+@property (nonatomic, assign, readonly) WLUnitFieldStyle style;
 #endif
 
 
@@ -64,7 +69,7 @@ IB_DESIGNABLE
     ┆ 1 ┆┆ 2 ┆┆ 3 ┆┆ 4 ┆    unitSpace is 6
     └┈┈┈┘└┈┈┈┘└┈┈┈┘└┈┈┈┘
  */
-@property (nonatomic, assign) IBInspectable CGFloat unitSpace;
+@property (nonatomic, assign) IBInspectable NSUInteger unitSpace;
 
 /**
  设置边框圆角
@@ -111,13 +116,19 @@ IB_DESIGNABLE
  */
 @property (nonatomic, assign) IBInspectable BOOL autoResignFirstResponderWhenInputFinished;
 
+/**
+ 每个 unitfield 的大小, 默认为 44x44
+ */
+@property (nonatomic, assign) IBInspectable CGSize unitSize;
+
 - (instancetype)initWithInputUnitCount:(NSUInteger)count;
+- (instancetype)initWithStyle:(WLUnitFieldStyle)style inputUnitCount:(NSUInteger)count;
 
 @end
 
 
 
-@protocol WLUnitFieldDelegate <NSObject>
+@protocol WLUnitFieldDelegate <UITextFieldDelegate>
 
 @optional
 - (BOOL)unitField:(WLUnitField *)uniField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string;

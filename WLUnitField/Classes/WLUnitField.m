@@ -7,8 +7,7 @@
 //
 
 #import "WLUnitField.h"
-
-#define DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(c) CGSizeMake(44 * c, 44)
+#import "WLUnitFieldTextRange.h"
 
 #ifdef NSFoundationVersionNumber_iOS_9_x_Max
     NSNotificationName const WLUnitFieldDidBecomeFirstResponderNotification = @"WLUnitFieldDidBecomeFirstResponderNotification";
@@ -18,9 +17,9 @@
     NSString *const WLUnitFieldDidResignFirstResponderNotification = @"WLUnitFieldDidResignFirstResponderNotification";
 #endif
 
-@interface WLUnitField () <UIKeyInput>
+@interface WLUnitField ()
 
-@property (nonatomic, strong) NSMutableArray *characterArray;
+@property (nonatomic, strong) NSMutableArray <NSString*>*characterArray;
 @property (nonatomic, strong) CALayer *cursorLayer;
 
 @end
@@ -29,21 +28,36 @@
 {
     UIColor *_backgroundColor;
     CGContextRef _ctx;
+    
+    NSString *_markedText;
 }
 
 @dynamic text;
+@synthesize textContentType = _textContentType;
 @synthesize secureTextEntry = _secureTextEntry;
 @synthesize enablesReturnKeyAutomatically = _enablesReturnKeyAutomatically;
 @synthesize keyboardType = _keyboardType;
 @synthesize returnKeyType = _returnKeyType;
 
+@synthesize autocapitalizationType = _autocapitalizationType;
+@synthesize autocorrectionType = _autocorrectionType;
+
+@synthesize inputDelegate = _inputDelegate;
+@synthesize selectedTextRange = _selectedTextRange;
+@synthesize markedTextStyle = _markedTextStyle;
+
 #pragma mark - Life
 
 - (instancetype)initWithInputUnitCount:(NSUInteger)count {
+    return [self initWithStyle:WLUnitFieldStyleBorder inputUnitCount:count];
+}
+
+- (instancetype)initWithStyle:(WLUnitFieldStyle)style inputUnitCount:(NSUInteger)count {
     if (self = [super initWithFrame:CGRectZero]) {
         NSCAssert(count > 0, @"WLUnitField must have one or more input units.");
         NSCAssert(count <= 8, @"WLUnitField can not have more than 8 input units.");
         
+        _style = style;
         _inputUnitCount = count;
         [self initialize];
     }
@@ -71,14 +85,13 @@
     return self;
 }
 
-
-
 - (void)initialize {
     [self setBackgroundColor:[UIColor clearColor]];
     self.opaque = NO;
     _characterArray = [NSMutableArray array];
     _secureTextEntry = NO;
     _unitSpace = 12;
+    _unitSize = CGSizeMake(44, 44);
     _borderRadius = 0;
     _borderWidth = 1;
     _textFont = [UIFont systemFontOfSize:22];
@@ -91,7 +104,13 @@
     _trackTintColor = [UIColor orangeColor];
     _cursorColor = [UIColor orangeColor];
     _backgroundColor = _backgroundColor ?: [UIColor clearColor];
+    _autocorrectionType = UITextAutocorrectionTypeNo;
+    _autocapitalizationType = UITextAutocapitalizationTypeNone;
     self.cursorLayer.backgroundColor = _cursorColor.CGColor;
+    
+    if (@available(iOS 12.0, *)) {
+        _textContentType = UITextContentTypeOneTimeCode;
+    }
 
     [self.layer addSublayer:self.cursorLayer];
     [self setNeedsDisplay];
@@ -117,6 +136,19 @@
     }];
     
     [self setNeedsDisplay];
+    [self _resetCursorStateIfNeeded];
+    
+    /**
+     Supporting iOS12 SMS verification code, setText will be called when verification code input.
+     */
+    if (_characterArray.count >= _inputUnitCount) {
+        if (_autoResignFirstResponderWhenInputFinished == YES) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                [self resignFirstResponder];
+            }];
+        }
+        return;
+    }
 }
 
 
@@ -125,6 +157,8 @@
         _cursorLayer = [CALayer layer];
         _cursorLayer.hidden = YES;
         _cursorLayer.opacity = 1;
+        
+        _markedText = nil;
         
         CABasicAnimation *animate = [CABasicAnimation animationWithKeyPath:@"opacity"];
         animate.fromValue = @(0);
@@ -136,12 +170,13 @@
         animate.fillMode = kCAFillModeForwards;
         animate.repeatCount = HUGE_VALF;
         
+        
         [_cursorLayer addAnimation:animate forKey:nil];
         
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
             [self layoutIfNeeded];
             
-            _cursorLayer.position = CGPointMake(CGRectGetWidth(self.bounds) / _inputUnitCount / 2, CGRectGetHeight(self.bounds) / 2);
+            self.cursorLayer.position = CGPointMake(CGRectGetWidth(self.bounds) / self.inputUnitCount / 2, CGRectGetHeight(self.bounds) / 2);
         }];
     }
     
@@ -155,7 +190,6 @@
     [self _resetCursorStateIfNeeded];
 }
 
-
 #if TARGET_INTERFACE_BUILDER
 - (void)setInputUnitCount:(NSUInteger)inputUnitCount {
     inputUnitCount = MAX(1, MIN(8, inputUnitCount));
@@ -164,11 +198,17 @@
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
+
+- (void)setStyle:(NSUInteger)style {
+    _style = style;
+    [self setNeedsDisplay];
+    [self _resetCursorStateIfNeeded];
+}
+
 #endif
 
 
-- (void)setUnitSpace:(CGFloat)unitSpace {
-    if (unitSpace < 0) return;
+- (void)setUnitSpace:(NSUInteger)unitSpace {
     if (unitSpace < 2) unitSpace = 0;
     
     _unitSpace = unitSpace;
@@ -221,12 +261,7 @@
 
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
-    if (backgroundColor == nil) {
-        _backgroundColor = [UIColor blackColor];
-    } else {
-        _backgroundColor = backgroundColor;
-    }
-    
+    _backgroundColor = [UIColor clearColor];
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
@@ -243,28 +278,11 @@
     [self _resetCursorStateIfNeeded];
 }
 
-
-//- (void)setTintBackgroundColor:(UIColor *)tintBackgroundColor {
-//    _tintBackgroundColor = tintBackgroundColor;
-//    
-//    [self setNeedsDisplay];
-//    [self _resetCursorStateIfNeeded];
-//}
-
-
 - (void)setTrackTintColor:(UIColor *)trackTintColor {
     _trackTintColor = trackTintColor;
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
-
-
-//- (void)setTrackTintBackgroundColor:(UIColor *)trackTintBackgroundColor {
-//    _trackTintBackgroundColor = trackTintBackgroundColor;
-//    [self setNeedsDisplay];
-//    [self _resetCursorStateIfNeeded];
-//}
-
 
 - (void)setCursorColor:(UIColor *)cursorColor {
     _cursorColor = cursorColor;
@@ -272,6 +290,11 @@
     [self _resetCursorStateIfNeeded];
 }
 
+- (void)setUnitSize:(CGSize)unitSize {
+    _unitSize = unitSize;
+    [self setNeedsDisplay];
+    [self _resetCursorStateIfNeeded];
+}
 
 #pragma mark- Event
 
@@ -284,12 +307,9 @@
 #pragma mark - Override
 
 - (CGSize)intrinsicContentSize {
-    CGSize size = self.bounds.size;
-    size.width = MAX(size.width, DEFAULT_CONTENT_SIZE_WITH_UNIT_COUNT(_inputUnitCount).width);
-    CGFloat unitWidth = (size.width + _unitSpace) / _inputUnitCount - _unitSpace;
-    size.height = unitWidth;
     
-    return size;
+    return CGSizeMake(_inputUnitCount * (_unitSize.width + _unitSpace) - _unitSpace ,
+                      _unitSize.height);
 }
 
 
@@ -369,7 +389,8 @@
 - (void)_fillRect:(CGRect)rect clip:(BOOL)clip {
     [_backgroundColor setFill];
     if (clip) {
-        CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:_borderRadius].CGPath);
+        CGFloat radius = _style == WLUnitFieldStyleBorder ? _borderRadius : 0;
+        CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:radius].CGPath);
         CGContextClip(_ctx);
     }
     CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:CGRectInset(rect, _borderWidth * 0.75, _borderWidth * 0.75) cornerRadius:_borderRadius].CGPath);
@@ -391,33 +412,50 @@
  */
 - (void)_drawBorder:(CGRect)rect unitSize:(CGSize)unitSize {
     
-    [self.tintColor setStroke];
-    CGContextSetLineWidth(_ctx, _borderWidth);
-    CGContextSetLineCap(_ctx, kCGLineCapRound);
     CGRect bounds = CGRectInset(rect, _borderWidth * 0.5, _borderWidth * 0.5);
     
-    
-    if (_unitSpace < 2) {
-        UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:_borderRadius];
-        CGContextAddPath(_ctx, bezierPath.CGPath);
+    if (_style == WLUnitFieldStyleBorder) {
+        [self.tintColor setStroke];
+        CGContextSetLineWidth(_ctx, _borderWidth);
+        CGContextSetLineCap(_ctx, kCGLineCapRound);
         
-        for (int i = 1; i < _inputUnitCount; ++i) {
-            CGContextMoveToPoint(_ctx, (i * unitSize.width), 0);
-            CGContextAddLineToPoint(_ctx, (i * unitSize.width), (unitSize.height));
+        if (_unitSpace < 2) {
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:_borderRadius];
+            CGContextAddPath(_ctx, bezierPath.CGPath);
+            
+            for (int i = 1; i < _inputUnitCount; ++i) {
+                CGContextMoveToPoint(_ctx, (i * unitSize.width), 0);
+                CGContextAddLineToPoint(_ctx, (i * unitSize.width), (unitSize.height));
+            }
+            
+        } else {
+            for (int i = (int)_characterArray.count; i < _inputUnitCount; i++) {
+                CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                             0,
+                                             unitSize.width,
+                                             unitSize.height);
+                unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
+                UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
+                CGContextAddPath(_ctx, bezierPath.CGPath);
+            }
         }
         
-    } else {
+        CGContextDrawPath(_ctx, kCGPathStroke);
+    }
+    else {
+        
+        [self.tintColor setFill];
         for (int i = (int)_characterArray.count; i < _inputUnitCount; i++) {
-            CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
-                                         0,
+            CGRect unitLineRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                         unitSize.height - _borderWidth,
                                          unitSize.width,
-                                         unitSize.height);
-            unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
-            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
+                                         _borderWidth);
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitLineRect cornerRadius:_borderRadius];
             CGContextAddPath(_ctx, bezierPath.CGPath);
         }
+        
+        CGContextDrawPath(_ctx, kCGPathFill);
     }
-    CGContextDrawPath(_ctx, kCGPathStroke);
 }
 
 
@@ -442,6 +480,7 @@
                                      unitSize.width,
                                      unitSize.height);
         
+        CGFloat yOffset = _style == WLUnitFieldStyleBorder ? 0 : _borderWidth;
         
         if (_secureTextEntry == NO) {
             NSString *subString = [_characterArray objectAtIndex:i];
@@ -450,11 +489,13 @@
             CGRect drawRect = CGRectInset(unitRect,
                                    (unitRect.size.width - oneTextSize.width) / 2,
                                    (unitRect.size.height - oneTextSize.height) / 2);
+            drawRect.size.height -= yOffset;
             [subString drawInRect:drawRect withAttributes:attr];
         } else {
             CGRect drawRect = CGRectInset(unitRect,
                                           (unitRect.size.width - _textFont.pointSize / 2) / 2,
                                           (unitRect.size.height - _textFont.pointSize / 2) / 2);
+            drawRect.size.height -= yOffset;
             [_textColor setFill];
             CGContextAddEllipseInRect(_ctx, drawRect);
             CGContextFillPath(_ctx);
@@ -472,24 +513,41 @@
  */
 - (void)_drawTrackBorder:(CGRect)rect unitSize:(CGSize)unitSize {
     if (_trackTintColor == nil) return;
-    if (_unitSpace < 2) return;
     
-    
-    [_trackTintColor setStroke];
-    CGContextSetLineWidth(_ctx, _borderWidth);
-    CGContextSetLineCap(_ctx, kCGLineCapRound);
-    
-    for (int i = 0; i < _characterArray.count; i++) {
-        CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
-                                     0,
-                                     unitSize.width,
-                                     unitSize.height);
-        unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
-        UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
-        CGContextAddPath(_ctx, bezierPath.CGPath);
-    }
+    if (_style == WLUnitFieldStyleBorder) {
+        if (_unitSpace < 2) return;
         
-    CGContextDrawPath(_ctx, kCGPathStroke);
+        [_trackTintColor setStroke];
+        CGContextSetLineWidth(_ctx, _borderWidth);
+        CGContextSetLineCap(_ctx, kCGLineCapRound);
+        
+        for (int i = 0; i < _characterArray.count; i++) {
+            CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                         0,
+                                         unitSize.width,
+                                         unitSize.height);
+            unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:_borderRadius];
+            CGContextAddPath(_ctx, bezierPath.CGPath);
+        }
+        
+        CGContextDrawPath(_ctx, kCGPathStroke);
+    }
+    else {
+        [_trackTintColor setFill];
+        
+        for (int i = 0; i < _characterArray.count; i++) {
+            CGRect unitLineRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                             unitSize.height - _borderWidth,
+                                             unitSize.width,
+                                             _borderWidth);
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitLineRect cornerRadius:_borderRadius];
+            CGContextAddPath(_ctx, bezierPath.CGPath);
+        }
+        
+        CGContextDrawPath(_ctx, kCGPathFill);
+    }
+    
 }
 
 
@@ -508,6 +566,9 @@
                            unitRect.size.width / 2 - 1,
                            (unitRect.size.height - _textFont.pointSize) / 2);
     
+    CGFloat yOffset = _style == WLUnitFieldStyleBorder ? 0 : _borderWidth;
+    unitRect.size.height -= yOffset;
+    
     [CATransaction begin];
     [CATransaction setDisableActions:NO];
     [CATransaction setAnimationDuration:0];
@@ -523,8 +584,18 @@
     return _characterArray != nil && _characterArray.count > 0;
 }
 
-
 - (void)insertText:(NSString *)text {
+    if ([text isEqualToString:@"\n"]) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            [self resignFirstResponder];
+        }];
+        return;
+    }
+    
+    if ([text isEqualToString:@" "]) {
+        return;
+    }
+    
     if (_characterArray.count >= _inputUnitCount) {
         if (_autoResignFirstResponderWhenInputFinished == YES) {
             [[NSOperationQueue mainQueue] addOperationWithBlock:^{
@@ -534,16 +605,13 @@
         return;
     }
     
-    if ([text isEqualToString:@" "]) {
-        return;
-    }
-    
     if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
-        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_characterArray.count - 1, 1) replacementString:text] == NO) {
+        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(self.text.length, text.length) replacementString:text] == NO) {
             return;
         }
     }
     
+    [_inputDelegate textWillChange:self];
     NSRange range;
     for (int i = 0; i < text.length; i += range.length) {
         range = [text rangeOfComposedCharacterSequenceAtIndex:i];
@@ -565,6 +633,7 @@
     
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
+    [_inputDelegate textDidChange:self];
 }
 
 
@@ -572,18 +641,115 @@
     if ([self hasText] == NO)
         return;
     
-    if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
-        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(_characterArray.count - 1, 0) replacementString:@""] == NO) {
-            return;
-        }
-    }
-    
+    [_inputDelegate textWillChange:self];
     [_characterArray removeLastObject];
     [self sendActionsForControlEvents:UIControlEventEditingChanged];
     
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
+    [_inputDelegate textDidChange:self];
 }
 
+
+/**
+ Supporting iOS12 SMS verification code, keyboardType must be UIKeyboardTypeNumberPad to localizable.
+ 
+ Must set textContentType to UITextContentTypeOneTimeCode
+ */
+
+
+// UITextInput implement.
+#pragma mark - UITextInput
+
+/* Methods for manipulating text. */
+- (nullable NSString *)textInRange:(WLUnitFieldTextRange *)range {
+    return nil;
+}
+
+- (void)replaceRange:(WLUnitFieldTextRange *)range withText:(NSString *)text {}
+
+
+// selectedRange is a range within the markedText
+- (void)setMarkedText:(nullable NSString *)markedText selectedRange:(NSRange)selectedRange {
+    _markedText = [markedText copy];
+}
+
+- (void)unmarkText {
+    if (self.text.length >= self.inputUnitCount)
+        return;
+    
+    if (_markedText == nil)
+        return;
+    
+    [self insertText:_markedText];
+}
+
+
+/* The end and beginning of the the text document. */
+- (UITextPosition *)beginningOfDocument {
+    return [WLUnitFieldTextPosition positionWithOffset:0];
+}
+
+- (UITextPosition *)endOfDocument {
+    return [WLUnitFieldTextPosition positionWithOffset:self.text.length - 1];
+}
+
+
+/* A tokenizer must be provided to inform the text input system about text units of varying granularity. */
+- (id<UITextInputTokenizer>)tokenizer {
+    return [[UITextInputStringTokenizer alloc] initWithTextInput:self];
+}
+
+
+// Nil if no marked text.
+- (UITextRange *)markedTextRange { return nil; }
+
+
+/* Methods for creating ranges and positions. */
+- (nullable UITextRange *)textRangeFromPosition:(WLUnitFieldTextPosition *)fromPosition toPosition:(WLUnitFieldTextPosition *)toPosition {
+    return [WLUnitFieldTextRange rangeWithStart:fromPosition end:toPosition];
+}
+
+- (nullable UITextPosition *)positionFromPosition:(WLUnitFieldTextPosition *)position offset:(NSInteger)offset {
+    return [WLUnitFieldTextPosition positionWithOffset:position.offset + offset];
+}
+
+- (nullable UITextPosition *)positionFromPosition:(WLUnitFieldTextPosition *)position inDirection:(UITextLayoutDirection)direction offset:(NSInteger)offset {
+    return [WLUnitFieldTextPosition positionWithOffset:position.offset + offset];
+}
+
+
+/* Simple evaluation of positions */
+- (NSComparisonResult)comparePosition:(WLUnitFieldTextPosition *)position toPosition:(WLUnitFieldTextPosition *)other {
+    if (position.offset < other.offset) return NSOrderedAscending;
+    if (position.offset > other.offset) return NSOrderedDescending;
+    return NSOrderedSame;
+}
+
+- (NSInteger)offsetFromPosition:(WLUnitFieldTextPosition *)from toPosition:(WLUnitFieldTextPosition *)toPosition {
+    return toPosition.offset - from.offset ;
+}
+
+
+/* Layout questions. */
+- (nullable UITextPosition *)positionWithinRange:(UITextRange *)range farthestInDirection:(UITextLayoutDirection)direction { return nil; }
+- (nullable UITextRange *)characterRangeByExtendingPosition:(WLUnitFieldTextPosition *)position inDirection:(UITextLayoutDirection)direction { return nil; }
+
+
+/* Writing direction */
+- (UITextWritingDirection)baseWritingDirectionForPosition:(WLUnitFieldTextPosition *)position inDirection:(UITextStorageDirection)direction { return UITextWritingDirectionNatural; }
+- (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection forRange:(UITextRange *)range {}
+
+
+/* Geometry used to provide, for example, a correction rect. */
+- (NSArray<UITextSelectionRect *> *)selectionRectsForRange:(WLUnitFieldTextRange *)range { return nil; }
+- (CGRect)firstRectForRange:(WLUnitFieldTextRange *)range { return CGRectNull; }
+- (CGRect)caretRectForPosition:(WLUnitFieldTextPosition *)position { return CGRectNull; }
+
+
+/* Hit testing. */
+- (nullable UITextRange *)characterRangeAtPoint:(CGPoint)point { return nil; }
+- (nullable UITextPosition *)closestPositionToPoint:(CGPoint)point withinRange:(WLUnitFieldTextRange *)range { return nil; }
+- (nullable UITextPosition *)closestPositionToPoint:(CGPoint)point { return nil; }
 
 @end
