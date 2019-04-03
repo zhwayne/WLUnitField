@@ -22,7 +22,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     _unitField.delegate = self;
-    _unitField.keyboardType = UIKeyboardTypeASCIICapable;
+    _unitField.keyboardType = UIKeyboardTypeNumberPad;
     _unitField.text = @"一😀12";
 }
 

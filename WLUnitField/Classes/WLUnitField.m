@@ -7,6 +7,7 @@
 //
 
 #import "WLUnitField.h"
+#import "WLUnitFieldTextRange.h"
 
 #ifdef NSFoundationVersionNumber_iOS_9_x_Max
     NSNotificationName const WLUnitFieldDidBecomeFirstResponderNotification = @"WLUnitFieldDidBecomeFirstResponderNotification";
@@ -27,6 +28,8 @@
 {
     UIColor *_backgroundColor;
     CGContextRef _ctx;
+    
+    NSString *_markedText;
 }
 
 @dynamic text;
@@ -38,6 +41,10 @@
 
 @synthesize autocapitalizationType = _autocapitalizationType;
 @synthesize autocorrectionType = _autocorrectionType;
+
+@synthesize inputDelegate = _inputDelegate;
+@synthesize selectedTextRange = _selectedTextRange;
+@synthesize markedTextStyle = _markedTextStyle;
 
 #pragma mark - Life
 
@@ -78,8 +85,6 @@
     return self;
 }
 
-
-
 - (void)initialize {
     [self setBackgroundColor:[UIColor clearColor]];
     self.opaque = NO;
@@ -102,6 +107,10 @@
     _autocorrectionType = UITextAutocorrectionTypeNo;
     _autocapitalizationType = UITextAutocapitalizationTypeNone;
     self.cursorLayer.backgroundColor = _cursorColor.CGColor;
+    
+    if (@available(iOS 12.0, *)) {
+        _textContentType = UITextContentTypeOneTimeCode;
+    }
 
     [self.layer addSublayer:self.cursorLayer];
     [self setNeedsDisplay];
@@ -127,6 +136,7 @@
     }];
     
     [self setNeedsDisplay];
+    [self _resetCursorStateIfNeeded];
     
     /**
      Supporting iOS12 SMS verification code, setText will be called when verification code input.
@@ -148,6 +158,8 @@
         _cursorLayer.hidden = YES;
         _cursorLayer.opacity = 1;
         
+        _markedText = nil;
+        
         CABasicAnimation *animate = [CABasicAnimation animationWithKeyPath:@"opacity"];
         animate.fromValue = @(0);
         animate.toValue = @(1.5);
@@ -157,6 +169,7 @@
         animate.removedOnCompletion = NO;
         animate.fillMode = kCAFillModeForwards;
         animate.repeatCount = HUGE_VALF;
+        
         
         [_cursorLayer addAnimation:animate forKey:nil];
         
@@ -176,21 +189,6 @@
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
-
-/// 在 iOS 11 及 iOS 12 beta 测试版系统中，对于实现了 UIKeyInput 协议的自定义控件，系统键盘的输入预测 pannel
-/// 极大概率会错位，键盘高度异常。猜测也许是系统 bug，如果你知道解决版办法，我很期待你的解答:)。
-/// 禁用大小写。感谢 jixiang0903 [https://github.com/jixiang0903] 提供的建议
-- (void)setAutocapitalizationType:(UITextAutocapitalizationType)autocapitalizationType {
-    _autocapitalizationType = UITextAutocapitalizationTypeNone;
-}
-
-/// 在 iOS 11 及 iOS 12 beta 测试版系统中，对于实现了 UIKeyInput 协议的自定义控件，系统键盘的输入预测 pannel
-/// 极大概率会错位，键盘高度异常。猜测也许是系统 bug，如果你知道解决版办法，我很期待你的解答:)。
-/// 禁用输入预测修正。感谢 jixiang0903 [https://github.com/jixiang0903] 提供的建议
-- (void)setAutocorrectionType:(UITextAutocorrectionType)autocorrectionType {
-    _autocorrectionType = UITextAutocorrectionTypeNo;
-}
-
 
 #if TARGET_INTERFACE_BUILDER
 - (void)setInputUnitCount:(NSUInteger)inputUnitCount {
@@ -263,12 +261,6 @@
 
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
-//    if (backgroundColor == nil) {
-//        _backgroundColor = [UIColor blackColor];
-//    } else {
-//        _backgroundColor = backgroundColor;
-//    }
-//
     _backgroundColor = [UIColor clearColor];
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
@@ -286,28 +278,11 @@
     [self _resetCursorStateIfNeeded];
 }
 
-
-//- (void)setTintBackgroundColor:(UIColor *)tintBackgroundColor {
-//    _tintBackgroundColor = tintBackgroundColor;
-//    
-//    [self setNeedsDisplay];
-//    [self _resetCursorStateIfNeeded];
-//}
-
-
 - (void)setTrackTintColor:(UIColor *)trackTintColor {
     _trackTintColor = trackTintColor;
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
-
-
-//- (void)setTrackTintBackgroundColor:(UIColor *)trackTintBackgroundColor {
-//    _trackTintBackgroundColor = trackTintBackgroundColor;
-//    [self setNeedsDisplay];
-//    [self _resetCursorStateIfNeeded];
-//}
-
 
 - (void)setCursorColor:(UIColor *)cursorColor {
     _cursorColor = cursorColor;
@@ -609,12 +584,15 @@
     return _characterArray != nil && _characterArray.count > 0;
 }
 
-
 - (void)insertText:(NSString *)text {
     if ([text isEqualToString:@"\n"]) {
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
             [self resignFirstResponder];
         }];
+        return;
+    }
+    
+    if ([text isEqualToString:@" "]) {
         return;
     }
     
@@ -627,16 +605,13 @@
         return;
     }
     
-    if ([text isEqualToString:@" "]) {
-        return;
-    }
-    
     if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
         if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(self.text.length, text.length) replacementString:text] == NO) {
             return;
         }
     }
     
+    [_inputDelegate textWillChange:self];
     NSRange range;
     for (int i = 0; i < text.length; i += range.length) {
         range = [text rangeOfComposedCharacterSequenceAtIndex:i];
@@ -658,6 +633,7 @@
     
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
+    [_inputDelegate textDidChange:self];
 }
 
 
@@ -665,23 +641,15 @@
     if ([self hasText] == NO)
         return;
     
-    if ([self.delegate respondsToSelector:@selector(unitField:shouldChangeCharactersInRange:replacementString:)]) {
-        NSUInteger len = self.characterArray.lastObject.length ?: 0;
-        if ([self.delegate unitField:self shouldChangeCharactersInRange:NSMakeRange(MAX(0, self.text.length - len), len) replacementString:@""] == NO) {
-            return;
-        }
-    }
-    
+    [_inputDelegate textWillChange:self];
     [_characterArray removeLastObject];
     [self sendActionsForControlEvents:UIControlEventEditingChanged];
     
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
+    [_inputDelegate textDidChange:self];
 }
 
-
-
-#pragma mark - UITextInputTraits
 
 /**
  Supporting iOS12 SMS verification code, keyboardType must be UIKeyboardTypeNumberPad to localizable.
@@ -689,127 +657,99 @@
  Must set textContentType to UITextContentTypeOneTimeCode
  */
 
-- (UITextContentType)textContentType {
-    return _textContentType;
-}
 
-- (void)setTextContentType:(UITextContentType)textContentType {
-    _textContentType = textContentType;
-}
 // UITextInput implement.
 #pragma mark - UITextInput
-- (nullable NSString *)textInRange:(UITextRange *)range {
+
+/* Methods for manipulating text. */
+- (nullable NSString *)textInRange:(WLUnitFieldTextRange *)range {
     return nil;
 }
 
-- (void)replaceRange:(UITextRange *)range withText:(NSString *)text {
-    return;
-}
+- (void)replaceRange:(WLUnitFieldTextRange *)range withText:(NSString *)text {}
 
-- (UITextRange *)selectedTextRange {
-    return nil;
-}
 
-- (void)setSelectedTextRange:(UITextRange *)selectedTextRange {
-    return;
-}
-
-- (UITextRange *)markedTextRange {
-    return nil;
-}
-
-- (NSDictionary<NSAttributedStringKey,id> *)markedTextStyle {
-    return nil;
-}
-
-- (void)setMarkedTextStyle:(NSDictionary<NSAttributedStringKey,id> *)markedTextStyle {
-    return;
-}
-
+// selectedRange is a range within the markedText
 - (void)setMarkedText:(nullable NSString *)markedText selectedRange:(NSRange)selectedRange {
-    return;
-}
-- (void)unmarkText {
-    return;
+    _markedText = [markedText copy];
 }
 
+- (void)unmarkText {
+    if (self.text.length >= self.inputUnitCount)
+        return;
+    
+    if (_markedText == nil)
+        return;
+    
+    [self insertText:_markedText];
+}
+
+
+/* The end and beginning of the the text document. */
 - (UITextPosition *)beginningOfDocument {
-    return nil;
+    return [WLUnitFieldTextPosition positionWithOffset:0];
 }
 
 - (UITextPosition *)endOfDocument {
-    return nil;
+    return [WLUnitFieldTextPosition positionWithOffset:self.text.length - 1];
 }
 
-- (nullable UITextRange *)textRangeFromPosition:(UITextPosition *)fromPosition toPosition:(UITextPosition *)toPosition {
-    return nil;
+
+/* A tokenizer must be provided to inform the text input system about text units of varying granularity. */
+- (id<UITextInputTokenizer>)tokenizer {
+    return [[UITextInputStringTokenizer alloc] initWithTextInput:self];
 }
 
-- (nullable UITextPosition *)positionFromPosition:(UITextPosition *)position offset:(NSInteger)offset {
-    return nil;
+
+// Nil if no marked text.
+- (UITextRange *)markedTextRange { return nil; }
+
+
+/* Methods for creating ranges and positions. */
+- (nullable UITextRange *)textRangeFromPosition:(WLUnitFieldTextPosition *)fromPosition toPosition:(WLUnitFieldTextPosition *)toPosition {
+    return [WLUnitFieldTextRange rangeWithStart:fromPosition end:toPosition];
 }
 
-- (nullable UITextPosition *)positionFromPosition:(UITextPosition *)position inDirection:(UITextLayoutDirection)direction offset:(NSInteger)offset {
-    return nil;
+- (nullable UITextPosition *)positionFromPosition:(WLUnitFieldTextPosition *)position offset:(NSInteger)offset {
+    return [WLUnitFieldTextPosition positionWithOffset:position.offset + offset];
 }
 
-- (NSComparisonResult)comparePosition:(UITextPosition *)position toPosition:(UITextPosition *)other {
+- (nullable UITextPosition *)positionFromPosition:(WLUnitFieldTextPosition *)position inDirection:(UITextLayoutDirection)direction offset:(NSInteger)offset {
+    return [WLUnitFieldTextPosition positionWithOffset:position.offset + offset];
+}
+
+
+/* Simple evaluation of positions */
+- (NSComparisonResult)comparePosition:(WLUnitFieldTextPosition *)position toPosition:(WLUnitFieldTextPosition *)other {
+    if (position.offset < other.offset) return NSOrderedAscending;
+    if (position.offset > other.offset) return NSOrderedDescending;
     return NSOrderedSame;
 }
 
-- (NSInteger)offsetFromPosition:(UITextPosition *)from toPosition:(UITextPosition *)toPosition {
-    return 0;
+- (NSInteger)offsetFromPosition:(WLUnitFieldTextPosition *)from toPosition:(WLUnitFieldTextPosition *)toPosition {
+    return toPosition.offset - from.offset ;
 }
 
-- (id<UITextInputDelegate>)inputDelegate {
-    return nil;
-}
 
-- (void)setInputDelegate:(id<UITextInputDelegate>)inputDelegate {
-    return;
-}
+/* Layout questions. */
+- (nullable UITextPosition *)positionWithinRange:(UITextRange *)range farthestInDirection:(UITextLayoutDirection)direction { return nil; }
+- (nullable UITextRange *)characterRangeByExtendingPosition:(WLUnitFieldTextPosition *)position inDirection:(UITextLayoutDirection)direction { return nil; }
 
-- (id<UITextInputTokenizer>)tokenizer {
-    return nil;
-}
 
-- (nullable UITextPosition *)positionWithinRange:(UITextRange *)range farthestInDirection:(UITextLayoutDirection)direction {
-    return nil;
-}
+/* Writing direction */
+- (UITextWritingDirection)baseWritingDirectionForPosition:(WLUnitFieldTextPosition *)position inDirection:(UITextStorageDirection)direction { return UITextWritingDirectionNatural; }
+- (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection forRange:(UITextRange *)range {}
 
-- (nullable UITextRange *)characterRangeByExtendingPosition:(UITextPosition *)position inDirection:(UITextLayoutDirection)direction {
-    return nil;
-}
 
-- (UITextWritingDirection)baseWritingDirectionForPosition:(UITextPosition *)position inDirection:(UITextStorageDirection)direction {
-    return UITextWritingDirectionNatural;
-}
+/* Geometry used to provide, for example, a correction rect. */
+- (NSArray<UITextSelectionRect *> *)selectionRectsForRange:(WLUnitFieldTextRange *)range { return nil; }
+- (CGRect)firstRectForRange:(WLUnitFieldTextRange *)range { return CGRectNull; }
+- (CGRect)caretRectForPosition:(WLUnitFieldTextPosition *)position { return CGRectNull; }
 
-- (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection forRange:(UITextRange *)range {
-    return;
-}
 
-- (CGRect)firstRectForRange:(UITextRange *)range {
-    return CGRectNull;
-}
+/* Hit testing. */
+- (nullable UITextRange *)characterRangeAtPoint:(CGPoint)point { return nil; }
+- (nullable UITextPosition *)closestPositionToPoint:(CGPoint)point withinRange:(WLUnitFieldTextRange *)range { return nil; }
+- (nullable UITextPosition *)closestPositionToPoint:(CGPoint)point { return nil; }
 
-- (CGRect)caretRectForPosition:(UITextPosition *)position {
-    return CGRectNull;
-}
-
-- (NSArray<UITextSelectionRect *> *)selectionRectsForRange:(UITextRange *)range {
-    return nil;
-}
-
-- (nullable UITextPosition *)closestPositionToPoint:(CGPoint)point {
-    return nil;
-}
-
-- (nullable UITextPosition *)closestPositionToPoint:(CGPoint)point withinRange:(UITextRange *)range {
-    return nil;
-}
-
-- (nullable UITextRange *)characterRangeAtPoint:(CGPoint)point {
-    return nil;
-}
 @end

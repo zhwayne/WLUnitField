@@ -33,7 +33,7 @@ typedef NS_ENUM(NSUInteger, WLUnitFieldStyle) {
 @protocol WLUnitFieldDelegate;
 
 IB_DESIGNABLE
-@interface WLUnitField : UIControl <UIKeyInput>
+@interface WLUnitField : UIControl <UITextInput>
 
 @property (nullable, nonatomic, weak) id<WLUnitFieldDelegate> delegate;
 
