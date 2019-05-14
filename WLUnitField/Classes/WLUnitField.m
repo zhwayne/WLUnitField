@@ -552,29 +552,31 @@
 
 
 - (void)_resetCursorStateIfNeeded {
-    _cursorLayer.hidden = !self.isFirstResponder || _cursorColor == nil || _inputUnitCount == _characterArray.count;
-    
-    if (_cursorLayer.hidden) return;
-    
-    CGSize unitSize = CGSizeMake((self.bounds.size.width + _unitSpace) / _inputUnitCount - _unitSpace, self.bounds.size.height);
-    
-    CGRect unitRect = CGRectMake(_characterArray.count * (unitSize.width + _unitSpace),
-                                 0,
-                                 unitSize.width,
-                                 unitSize.height);
-    unitRect = CGRectInset(unitRect,
-                           unitRect.size.width / 2 - 1,
-                           (unitRect.size.height - _textFont.pointSize) / 2);
-    
-    CGFloat yOffset = _style == WLUnitFieldStyleBorder ? 0 : _borderWidth;
-    unitRect.size.height -= yOffset;
-    
-    [CATransaction begin];
-    [CATransaction setDisableActions:NO];
-    [CATransaction setAnimationDuration:0];
-    [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
-    _cursorLayer.frame = unitRect;
-    [CATransaction commit];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self->_cursorLayer.hidden = !self.isFirstResponder || self->_cursorColor == nil || self->_inputUnitCount == self->_characterArray.count;
+        
+        if (self->_cursorLayer.hidden) return;
+        
+        CGSize unitSize = CGSizeMake((self.bounds.size.width + self->_unitSpace) / self->_inputUnitCount - self->_unitSpace, self.bounds.size.height);
+        
+        CGRect unitRect = CGRectMake(self->_characterArray.count * (unitSize.width + self->_unitSpace),
+                                     0,
+                                     unitSize.width,
+                                     unitSize.height);
+        unitRect = CGRectInset(unitRect,
+                               unitRect.size.width / 2 - 1,
+                               (unitRect.size.height - self->_textFont.pointSize) / 2);
+        
+        CGFloat yOffset = self->_style == WLUnitFieldStyleBorder ? 0 : self->_borderWidth;
+        unitRect.size.height -= yOffset;
+        
+        [CATransaction begin];
+        [CATransaction setDisableActions:NO];
+        [CATransaction setAnimationDuration:0];
+        [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+        self->_cursorLayer.frame = unitRect;
+        [CATransaction commit];
+    });
 }
 
 
