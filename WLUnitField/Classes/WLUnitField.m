@@ -261,19 +261,14 @@
 
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
-    _backgroundColor = [UIColor clearColor];
+    _backgroundColor = backgroundColor;
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
 
 
 - (void)setTintColor:(UIColor *)tintColor {
-    if (tintColor == nil) {
-        _tintColor = [[UIView appearance] tintColor];
-    } else {
-        _tintColor = tintColor;
-    }
-    
+    _tintColor = tintColor;
     [self setNeedsDisplay];
     [self _resetCursorStateIfNeeded];
 }
@@ -359,10 +354,9 @@
      *  绘制的线条具有宽度，因此在绘制时需要考虑该因素对绘制效果的影响。
      */
     CGSize unitSize = CGSizeMake((rect.size.width + _unitSpace) / _inputUnitCount - _unitSpace, rect.size.height);
-    
     _ctx = UIGraphicsGetCurrentContext();
-
-    [self _fillRect:rect clip:YES];
+    
+    [self _fillRect:rect unitSize:unitSize];
     [self _drawBorder:rect unitSize:unitSize];
     [self _drawText:rect unitSize:unitSize];
     [self _drawTrackBorder:rect unitSize:unitSize];
@@ -384,16 +378,26 @@
  绘制背景色，以及剪裁绘制区域
 
  @param rect 控件绘制的区域
- @param clip 剪裁区域同时被`borderRadius`影响
  */
-- (void)_fillRect:(CGRect)rect clip:(BOOL)clip {
+- (void)_fillRect:(CGRect)rect unitSize:(CGSize)unitSize {
     [_backgroundColor setFill];
-    if (clip) {
-        CGFloat radius = _style == WLUnitFieldStyleBorder ? _borderRadius : 0;
-        CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:radius].CGPath);
-        CGContextClip(_ctx);
+    CGFloat radius = _style == WLUnitFieldStyleBorder ? _borderRadius : 0;
+    
+    if (_unitSpace < 2) {
+        UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:radius];
+        CGContextAddPath(_ctx, bezierPath.CGPath);
+    } else {
+        for (int i = 0; i < _inputUnitCount; ++i) {
+            CGRect unitRect = CGRectMake(i * (unitSize.width + _unitSpace),
+                                         0,
+                                         unitSize.width,
+                                         unitSize.height);
+            unitRect = CGRectInset(unitRect, _borderWidth * 0.5, _borderWidth * 0.5);
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:unitRect cornerRadius:radius];
+            CGContextAddPath(_ctx, bezierPath.CGPath);
+        }
     }
-    CGContextAddPath(_ctx, [UIBezierPath bezierPathWithRoundedRect:CGRectInset(rect, _borderWidth * 0.75, _borderWidth * 0.75) cornerRadius:_borderRadius].CGPath);
+    
     CGContextFillPath(_ctx);
 }
 

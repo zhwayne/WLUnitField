@@ -20,14 +20,4 @@
     return  [self.class positionWithOffset:self.offset];
 }
 
-//- (BOOL)isEqual:(WLUnitFieldTextPosition *)object {
-//    if (!object) return NO;
-//    if (![object isKindOfClass:[self class]]) return NO;
-//    return self.offset == object.offset;
-//}
-//
-//- (NSUInteger)hash {
-//    return _offset << 1;
-//}
-
 @end
