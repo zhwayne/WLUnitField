@@ -24,6 +24,9 @@
     _unitField.delegate = self;
     _unitField.keyboardType = UIKeyboardTypeNumberPad;
     _unitField.text = @"一😀12";
+    _unitField.backgroundColor = UIColor.redColor;
+    _unitField.tintColor = UIColor.yellowColor;
+    _unitField.trackTintColor = UIColor.greenColor;
 }
 
 - (BOOL)unitField:(WLUnitField *)uniField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {

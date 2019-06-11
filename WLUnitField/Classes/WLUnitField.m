@@ -86,7 +86,7 @@
 }
 
 - (void)initialize {
-    [self setBackgroundColor:[UIColor clearColor]];
+    _backgroundColor = [UIColor clearColor];
     self.opaque = NO;
     _characterArray = [NSMutableArray array];
     _secureTextEntry = NO;
@@ -116,6 +116,11 @@
     [self setNeedsDisplay];
 }
 
+- (void)_commitRenderTask {
+    [self setNeedsDisplay];
+    [self _resetCursorStateIfNeeded];
+}
+
 
 #pragma mark - Property
 
@@ -135,8 +140,7 @@
             *stop = YES;
     }];
     
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
     
     /**
      Supporting iOS12 SMS verification code, setText will be called when verification code input.
@@ -186,8 +190,7 @@
 
 - (void)setSecureTextEntry:(BOOL)secureTextEntry {
     _secureTextEntry = secureTextEntry;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 #if TARGET_INTERFACE_BUILDER
@@ -195,14 +198,12 @@
     inputUnitCount = MAX(1, MIN(8, inputUnitCount));
     
     _inputUnitCount = inputUnitCount;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 - (void)setStyle:(NSUInteger)style {
     _style = style;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 #endif
@@ -213,8 +214,7 @@
     
     _unitSpace = unitSpace;
     [self _resize];
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 
@@ -225,8 +225,7 @@
         _textFont = textFont;
     }
     
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 
@@ -237,8 +236,7 @@
         _textColor = textColor;
     }
     
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 
@@ -246,8 +244,7 @@
     if (borderRadius < 0) return;
     
     _borderRadius = borderRadius;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 
@@ -255,28 +252,24 @@
     if (borderWidth < 0) return;
     
     _borderWidth = borderWidth;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     _backgroundColor = backgroundColor;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 
 - (void)setTintColor:(UIColor *)tintColor {
     _tintColor = tintColor;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 - (void)setTrackTintColor:(UIColor *)trackTintColor {
     _trackTintColor = trackTintColor;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 - (void)setCursorColor:(UIColor *)cursorColor {
@@ -287,8 +280,7 @@
 
 - (void)setUnitSize:(CGSize)unitSize {
     _unitSize = unitSize;
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
 }
 
 #pragma mark- Event
@@ -637,8 +629,7 @@
         [self sendActionsForControlEvents:UIControlEventEditingChanged];
     }
     
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
     [_inputDelegate textDidChange:self];
 }
 
@@ -651,8 +642,7 @@
     [_characterArray removeLastObject];
     [self sendActionsForControlEvents:UIControlEventEditingChanged];
     
-    [self setNeedsDisplay];
-    [self _resetCursorStateIfNeeded];
+    [self _commitRenderTask];
     [_inputDelegate textDidChange:self];
 }
 
