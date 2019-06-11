@@ -44,13 +44,4 @@
     return NSMakeRange(_start.offset, _end.offset - _start.offset);
 }
 
-//- (BOOL)isEqual:(WLUnitFieldTextRange *)object {
-//    if (!object) return NO;
-//    return [_start isEqual:object.start] && [_end isEqual:object.end];
-//}
-//
-//- (NSUInteger)hash {
-//    return [_start hash] + [_end hash] *
-//}
-
 @end
