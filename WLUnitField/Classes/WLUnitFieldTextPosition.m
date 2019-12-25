@@ -17,7 +17,7 @@
 }
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    return  [self.class positionWithOffset:self.offset];
+    return [WLUnitFieldTextPosition positionWithOffset:self.offset];
 }
 
 @end

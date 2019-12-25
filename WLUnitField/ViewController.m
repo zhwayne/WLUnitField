@@ -22,8 +22,8 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     _unitField.delegate = self;
-    _unitField.keyboardType = UIKeyboardTypeNumberPad;
-    _unitField.text = @"一😀12";
+    _unitField.keyboardType = UIKeyboardTypeDefault;
+//    _unitField.text = @"一😀12";
 }
 
 - (BOOL)unitField:(WLUnitField *)uniField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
@@ -39,7 +39,7 @@
 }
 
 - (IBAction)unitFieldEditingChanged:(WLUnitField *)sender {
-     NSLog(@"%s, %@", __FUNCTION__, sender.text);
+     NSLog(@"%s %@", __FUNCTION__, sender.text);
 }
 
 - (IBAction)unitFieldEditingDidBegin:(id)sender {

@@ -8,20 +8,15 @@
 
 #import "WLUnitFieldTextRange.h"
 
-@implementation WLUnitFieldTextRange {
-    WLUnitFieldTextPosition *_start;
-    WLUnitFieldTextPosition *_end;
-}
+@implementation WLUnitFieldTextRange
+@dynamic range;
+@synthesize start = _start, end = _end;
 
-- (WLUnitFieldTextPosition *)start {
-    return _start;
-}
-
-- (WLUnitFieldTextPosition *)end {
-    return _end;
-}
 
 + (instancetype)rangeWithRange:(NSRange)range {
+    if (range.location == NSNotFound)
+        return nil;
+    
     WLUnitFieldTextPosition *start = [WLUnitFieldTextPosition positionWithOffset:range.location];
     WLUnitFieldTextPosition *end = [WLUnitFieldTextPosition positionWithOffset:range.location + range.length];
     return [self rangeWithStart:start end:end];
@@ -37,7 +32,7 @@
 }
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    return [self.class rangeWithStart:_start end:_end];
+    return [WLUnitFieldTextRange rangeWithStart:_start end:_end];
 }
 
 - (NSRange)range {
