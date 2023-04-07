@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0BA2107127855FAF00AC00C4 /* WLUnitFieldContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BA2107027855FAF00AC00C4 /* WLUnitFieldContentView.m */; };
 		B0130E881DE56EE0001E6466 /* UIColor+randomColor.m in Sources */ = {isa = PBXBuildFile; fileRef = B0130E851DE56EE0001E6466 /* UIColor+randomColor.m */; };
 		B0130E891DE56EE0001E6466 /* YGColorDefinition.m in Sources */ = {isa = PBXBuildFile; fileRef = B0130E871DE56EE0001E6466 /* YGColorDefinition.m */; };
 		B089872D1DE41A91003B3A6E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B089872C1DE41A91003B3A6E /* main.m */; };
@@ -21,6 +22,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0BA2106F27855FAF00AC00C4 /* WLUnitFieldContentView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WLUnitFieldContentView.h; sourceTree = "<group>"; };
+		0BA2107027855FAF00AC00C4 /* WLUnitFieldContentView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WLUnitFieldContentView.m; sourceTree = "<group>"; };
 		B0130E841DE56EE0001E6466 /* UIColor+randomColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+randomColor.h"; sourceTree = "<group>"; };
 		B0130E851DE56EE0001E6466 /* UIColor+randomColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+randomColor.m"; sourceTree = "<group>"; };
 		B0130E861DE56EE0001E6466 /* YGColorDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGColorDefinition.h; sourceTree = "<group>"; };
@@ -120,6 +123,8 @@
 			children = (
 				B0C1E17C1F591E1600E75FCC /* WLUnitField.h */,
 				B0C1E17D1F591E1600E75FCC /* WLUnitField.m */,
+				0BA2106F27855FAF00AC00C4 /* WLUnitFieldContentView.h */,
+				0BA2107027855FAF00AC00C4 /* WLUnitFieldContentView.m */,
 				B0E2575B225480B5008C34FB /* WLUnitFieldTextRange.h */,
 				B0E2575C225480B5008C34FB /* WLUnitFieldTextRange.m */,
 				B0E2575E225480D2008C34FB /* WLUnitFieldTextPosition.h */,
@@ -154,7 +159,7 @@
 		B08987201DE41A91003B3A6E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1320;
 				ORGANIZATIONNAME = wayne;
 				TargetAttributes = {
 					B08987271DE41A91003B3A6E = {
@@ -201,6 +206,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B08987331DE41A91003B3A6E /* ViewController.m in Sources */,
+				0BA2107127855FAF00AC00C4 /* WLUnitFieldContentView.m in Sources */,
 				B0C1E17E1F591E1600E75FCC /* WLUnitField.m in Sources */,
 				B08987301DE41A91003B3A6E /* AppDelegate.m in Sources */,
 				B0E2575D225480B5008C34FB /* WLUnitFieldTextRange.m in Sources */,
@@ -258,6 +264,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -316,6 +323,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;

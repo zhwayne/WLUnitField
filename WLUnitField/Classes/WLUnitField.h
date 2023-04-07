@@ -41,7 +41,7 @@ IB_DESIGNABLE
  保留的用户输入的字符串，最好使用数字字符串，因为目前还不支持其他字符。
  */
 @property (nullable, nonatomic, copy) IBInspectable NSString *text;
-@property(null_unspecified,nonatomic,copy) IBInspectable UITextContentType textContentType NS_AVAILABLE_IOS(10_0); // default is nil
+@property(null_unspecified, nonatomic, copy) IBInspectable UITextContentType textContentType NS_AVAILABLE_IOS(10_0); // default is nil
 
 #if TARGET_INTERFACE_BUILDER
 /**
