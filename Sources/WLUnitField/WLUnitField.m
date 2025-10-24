@@ -317,16 +317,15 @@
 
 
 - (CGSize)sizeThatFits:(CGSize)size {
-    CGSize intrinsicSize = [self intrinsicContentSize];
-    
-    // 如果传入的尺寸足够大，返回固有尺寸
-    if (size.width >= intrinsicSize.width && size.height >= intrinsicSize.height) {
-        return intrinsicSize;
-    }
-    
-    // 如果传入的尺寸太小，返回传入的尺寸（但至少保证最小尺寸）
-    CGSize minSize = CGSizeMake(_inputUnitCount * 20, 20); // 最小尺寸
-    return CGSizeMake(MAX(size.width, minSize.width), MAX(size.height, minSize.height));
+    return [self intrinsicContentSize];
+}
+
+- (void)sizeToFit { 
+    CGRect bounds = self.bounds;
+    bounds.size = [self intrinsicContentSize];
+    self.bounds = bounds;
+    [self setNeedsDisplay];
+    [self _resetCursorStateIfNeeded];
 }
 
 

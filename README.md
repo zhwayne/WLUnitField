@@ -10,6 +10,26 @@ This is an elegant and concise password/verification code text field. You can us
 - 提供两种界面面样式：边框和下划线（Provide two UI styles: border-based and underline-based）
 - 支持自动填充验证码，仅限 iOS 12 系统（Autofill One time code supports, only for iOS 12+）
 
+# 安装方式（Installation）
+
+## Swift Package Manager
+
+在 Xcode 中：
+1. File > Add Packages...
+2. 输入仓库 URL: `https://github.com/username/WLUnitField.git`
+3. 选择版本并添加
+
+或在 Package.swift 中添加：
+```swift
+dependencies: [
+    .package(url: "https://github.com/username/WLUnitField.git", from: "1.0.0")
+]
+```
+
+## 手动集成
+
+将 `WLUnitField/Classes/` 目录下的文件添加到你的项目中。
+
 # 使用方式（Usage）
 
 `WLUnitField`的使用非常简单。它继承自`UIControl`，你可以给它添加以下 3 种`UIControlEvents`：

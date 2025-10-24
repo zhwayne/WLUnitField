@@ -58,3 +58,7 @@ fastlane/screenshots
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+
+# Swift Package Manager
+.swiftpm/
+.build/

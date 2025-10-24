@@ -87,11 +87,11 @@
     if (sender.tag == 9) {
         _unitField.textColor = color;
     } else if (sender.tag == 10) {
-        _unitField.tintColor = color;
+        _unitField.strokeColor = color;
     } else if (sender.tag == 11) {
         _unitField.trackTintColor = color;
     } else if (sender.tag == 12) {
-        _unitField.cursorColor = color;
+        _unitField.tintColor = color;
     }
 }
 

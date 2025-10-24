@@ -16,8 +16,6 @@
 		B08987381DE41A92003B3A6E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B08987371DE41A92003B3A6E /* Assets.xcassets */; };
 		B089873B1DE41A92003B3A6E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B08987391DE41A92003B3A6E /* LaunchScreen.storyboard */; };
 		B0C1E17E1F591E1600E75FCC /* WLUnitField.m in Sources */ = {isa = PBXBuildFile; fileRef = B0C1E17D1F591E1600E75FCC /* WLUnitField.m */; };
-		B0E2575D225480B5008C34FB /* WLUnitFieldTextRange.m in Sources */ = {isa = PBXBuildFile; fileRef = B0E2575C225480B5008C34FB /* WLUnitFieldTextRange.m */; };
-		B0E25760225480D2008C34FB /* WLUnitFieldTextPosition.m in Sources */ = {isa = PBXBuildFile; fileRef = B0E2575F225480D2008C34FB /* WLUnitFieldTextPosition.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,10 +35,6 @@
 		B089873C1DE41A92003B3A6E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B0C1E17C1F591E1600E75FCC /* WLUnitField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WLUnitField.h; sourceTree = "<group>"; };
 		B0C1E17D1F591E1600E75FCC /* WLUnitField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WLUnitField.m; sourceTree = "<group>"; };
-		B0E2575B225480B5008C34FB /* WLUnitFieldTextRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WLUnitFieldTextRange.h; sourceTree = "<group>"; };
-		B0E2575C225480B5008C34FB /* WLUnitFieldTextRange.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WLUnitFieldTextRange.m; sourceTree = "<group>"; };
-		B0E2575E225480D2008C34FB /* WLUnitFieldTextPosition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WLUnitFieldTextPosition.h; sourceTree = "<group>"; };
-		B0E2575F225480D2008C34FB /* WLUnitFieldTextPosition.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WLUnitFieldTextPosition.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,10 +114,6 @@
 			children = (
 				B0C1E17C1F591E1600E75FCC /* WLUnitField.h */,
 				B0C1E17D1F591E1600E75FCC /* WLUnitField.m */,
-				B0E2575B225480B5008C34FB /* WLUnitFieldTextRange.h */,
-				B0E2575C225480B5008C34FB /* WLUnitFieldTextRange.m */,
-				B0E2575E225480D2008C34FB /* WLUnitFieldTextPosition.h */,
-				B0E2575F225480D2008C34FB /* WLUnitFieldTextPosition.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -203,9 +193,7 @@
 				B08987331DE41A91003B3A6E /* ViewController.m in Sources */,
 				B0C1E17E1F591E1600E75FCC /* WLUnitField.m in Sources */,
 				B08987301DE41A91003B3A6E /* AppDelegate.m in Sources */,
-				B0E2575D225480B5008C34FB /* WLUnitFieldTextRange.m in Sources */,
 				B089872D1DE41A91003B3A6E /* main.m in Sources */,
-				B0E25760225480D2008C34FB /* WLUnitFieldTextPosition.m in Sources */,
 				B0130E881DE56EE0001E6466 /* UIColor+randomColor.m in Sources */,
 				B0130E891DE56EE0001E6466 /* YGColorDefinition.m in Sources */,
 			);
