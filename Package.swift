@@ -15,7 +15,7 @@ let package = Package(
     targets: [
         .target(
             name: "WLUnitField",
-            path: "Sources/WLUnitField",
+            path: "WLUnitField/Classes",
             publicHeadersPath: "."
         )
     ]
